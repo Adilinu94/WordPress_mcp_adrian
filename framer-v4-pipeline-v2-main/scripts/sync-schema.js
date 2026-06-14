@@ -8,7 +8,7 @@
  * Uses McpClient (Phase 1.2) for HTTP calls with exponential-backoff
  * retry on 5xx / network errors / timeouts.
  *
- * SOURCE OF TRUTH: wp-json/novamira-adrianv2/v1/prop-schema
+ * SOURCE OF TRUTH: wp-json/novamira/v1/prop-schema
  * TARGET:          schemas/v4-prop-type-schema.json
  *
  * Fail-Fast: exit code 1 if the endpoint is unreachable after all
@@ -81,7 +81,7 @@ const OUTPUT_PATH  = args.output
   ? resolve(args.output)
   : resolve(dirname(new URL(import.meta.url).pathname), '..', 'schemas', 'v4-prop-type-schema.json');
 const TIMEOUT_MS   = parseInt(args.timeout, 10);
-const API_PATH     = '/wp-json/novamira-adrianv2/v1/prop-schema';
+const API_PATH     = '/wp-json/novamira/v1/prop-schema';
 
 if (!WP_BASE_URL) {
   fatal(

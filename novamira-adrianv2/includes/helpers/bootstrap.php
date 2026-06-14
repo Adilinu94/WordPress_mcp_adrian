@@ -59,3 +59,16 @@ require_once __DIR__ . '/trait-ability-registry.php';
 
 // 12. Elementor data helpers trait (used by Elementor/Media/A11y ability classes).
 require_once __DIR__ . '/trait-elementor-data-helpers.php';
+
+// ─── REST-API: V4 Prop-Schema Endpoint (ENH-16) ──────────────────────────
+// Serves the canonical V4 property-type schema for sync-schema.js.
+// GET /wp-json/novamira/v1/prop-schema
+add_action('rest_api_init', function () {
+    register_rest_route('novamira/v1', '/prop-schema', [
+        'methods'             => 'GET',
+        'callback'            => function () {
+            return \Novamira\AdrianV2\Helpers\V4_Props::get_schema();
+        },
+        'permission_callback' => '__return_true',
+    ]);
+});
