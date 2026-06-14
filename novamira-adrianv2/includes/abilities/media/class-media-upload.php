@@ -81,11 +81,13 @@ class Media_Upload
         $description    = $input['description'] ?? '';
         $parent_post_id = $input['parent_post_id'] ?? 0;
 
-        // Validate filename has an extension
-        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-        if (!$ext) {
-            return ['success' => false, 'error' => 'Filename must include a file extension.'];
+        // ── FIX-16: Filename sanitization (path-traversal, dot-prefix, extension whitelist) ──
+        $guard = self::guard_filename($filename);
+        if (is_array($guard)) {
+            return $guard;
         }
+        $filename = $guard;
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
 
         // Strip data URL prefix if present (e.g. "data:image/png;base64,")
         if (str_contains($base64_content, ',')) {
@@ -103,6 +105,16 @@ class Media_Upload
 
         if (strlen($file_content) === 0) {
             return ['success' => false, 'error' => 'Decoded file content is empty.'];
+        }
+
+        // ── FIX-17: MIME-type validation (magic-bytes + finfo_buffer defense-in-depth) ──
+        $content_error = self::guard_file_content($file_content, $ext);
+        if ($content_error !== null) {
+            return ['success' => false, 'error' => $content_error];
+        }
+        $mime_error = self::guard_mime_buffer($file_content, $ext);
+        if ($mime_error !== null) {
+            return ['success' => false, 'error' => $mime_error];
         }
 
         // Check file size (max 64MB by default, WordPress default)
@@ -185,6 +197,191 @@ class Media_Upload
                 'is_image'       => $is_image,
             ],
         ];
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // FIX-16: Filename Sanitization Guard (path-traversal + whitelist)
+    // ─────────────────────────────────────────────────────────────────
+
+    /**
+     * Sanitize and validate a filename for media upload.
+     *
+     * Layers:
+     *   1. WordPress sanitize_file_name() — strips ../ and trailing slashes
+     *   2. Defense-in-depth — explicit check for / and \ after sanitize
+     *   3. Dot-prefix block — rejects .htaccess and similar
+     *   4. Extension whitelist — only jpg, jpeg, png, gif, webp, svg, pdf, ico
+     *
+     * @param string $filename Raw filename from input.
+     * @return string|array Sanitized filename or error array ['success'=>false,'error'=>string].
+     */
+    private static function guard_filename(string $filename): string|array
+    {
+        // Layer 1: WordPress sanitize
+        $sanitized = sanitize_file_name($filename);
+
+        // Layer 2: Check if sanitization produced an empty string
+        if ($sanitized === '') {
+            return ['success' => false, 'error' => 'Invalid filename after sanitization.'];
+        }
+
+        // Explicit check for remaining path separators
+        if (str_contains($sanitized, '/') || str_contains($sanitized, '\\')) {
+            return ['success' => false, 'error' => 'Filename contains invalid path components.'];
+        }
+
+        // Layer 3: Dot-prefix block
+        if (str_starts_with($sanitized, '.')) {
+            return ['success' => false, 'error' => 'Filename cannot start with a dot.'];
+        }
+
+        // Layer 4: Extension whitelist
+        $ext = strtolower(pathinfo($sanitized, PATHINFO_EXTENSION));
+        $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'pdf', 'ico'];
+
+        if ($ext === '') {
+            return ['success' => false, 'error' => 'Filename must include a file extension.'];
+        }
+
+        if (!in_array($ext, $allowed, true)) {
+            return ['success' => false, 'error' => "File extension '.$ext' is not allowed. Allowed: " . implode(', ', $allowed)];
+        }
+
+        return $sanitized;
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // FIX-17: MIME-Type Validation Guards (magic-bytes + finfo_buffer)
+    // ─────────────────────────────────────────────────────────────────
+
+    /**
+     * Validate file content against its claimed extension using magic-bytes.
+     *
+     * Precise format-specific header check. Returns null on match,
+     * error string on mismatch.
+     *
+     * @param string $content Raw decoded file content.
+     * @param string $ext     Lowercase file extension.
+     * @return string|null Error message or null if valid.
+     */
+    private static function guard_file_content(string $content, string $ext): ?string
+    {
+        $header2 = substr($content, 0, 2);
+        $header3 = substr($content, 0, 3);
+        $header4 = substr($content, 0, 4);
+        $header8 = substr($content, 0, 8);
+
+        switch ($ext) {
+            case 'jpg':
+            case 'jpeg':
+                // JPEG: FF D8 FF
+                if ($header3 !== "\xFF\xD8\xFF") {
+                    return "File content does not match claimed extension '.$ext' (possible MIME-spoofing).";
+                }
+                break;
+
+            case 'png':
+                // PNG: 89 50 4E 47 0D 0A 1A 0A
+                if ($header8 !== "\x89PNG\r\n\x1a\n") {
+                    return "File content does not match claimed extension '.$ext' (possible MIME-spoofing).";
+                }
+                break;
+
+            case 'gif':
+                // GIF87a or GIF89a
+                if ($header4 !== 'GIF8' || !in_array(substr($content, 4, 2), ['7a', '9a'], true)) {
+                    return "File content does not match claimed extension '.$ext' (possible MIME-spoofing).";
+                }
+                break;
+
+            case 'webp':
+                // RIFF prefix: 52 49 46 46
+                if ($header4 !== 'RIFF') {
+                    return "File content does not match claimed extension '.$ext' (possible MIME-spoofing).";
+                }
+                break;
+
+            case 'pdf':
+                // %PDF
+                if ($header4 !== '%PDF') {
+                    return "File content does not match claimed extension '.$ext' (possible MIME-spoofing).";
+                }
+                break;
+
+            case 'ico':
+                // ICO: 00 00 01 00
+                if ($header4 !== "\x00\x00\x01\x00") {
+                    return "File content does not match claimed extension '.$ext' (possible MIME-spoofing).";
+                }
+                break;
+
+            case 'svg':
+                // SVG: text-based, scan first 200 bytes for <svg or <?xml
+                $head200 = substr($content, 0, 200);
+                if (!preg_match('/<svg[\s>]/i', $head200) && !preg_match('/<\?xml/i', $head200)) {
+                    return 'File content does not appear to be valid SVG.';
+                }
+                break;
+
+            default:
+                // Extension already validated by guard_filename() — skip
+                return null;
+        }
+
+        return null; // Passed
+    }
+
+    /**
+     * Cross-validate file content using finfo_buffer (libmagic).
+     *
+     * Defense-in-depth layer alongside guard_file_content().
+     * Fail-open: if finfo is unavailable, silently skip.
+     *
+     * @param string $content Raw decoded file content.
+     * @param string $ext     Lowercase file extension.
+     * @return string|null Error message or null if valid/skipped.
+     */
+    private static function guard_mime_buffer(string $content, string $ext): ?string
+    {
+        // Fail-open: skip if finfo extension is unavailable
+        if (!function_exists('finfo_open') || !function_exists('finfo_buffer')) {
+            return null;
+        }
+
+        $finfo = @finfo_open(FILEINFO_MIME_TYPE);
+        if ($finfo === false) {
+            return null; // Fail-open
+        }
+
+        $detected = @finfo_buffer($finfo, $content);
+        @finfo_close($finfo);
+
+        if ($detected === false || $detected === '') {
+            return null; // Could not detect — skip
+        }
+
+        // Extension → acceptable MIME types
+        $expected_mimes = [
+            'jpg'  => ['image/jpeg'],
+            'jpeg' => ['image/jpeg'],
+            'png'  => ['image/png'],
+            'gif'  => ['image/gif'],
+            'webp' => ['image/webp'],
+            'svg'  => ['image/svg+xml', 'application/xml', 'text/xml', 'text/plain'],
+            'pdf'  => ['application/pdf'],
+            'ico'  => ['image/x-icon', 'image/vnd.microsoft.icon', 'image/ico'],
+        ];
+
+        $acceptable = $expected_mimes[$ext] ?? null;
+        if ($acceptable === null) {
+            return null; // Unknown extension — skip finfo
+        }
+
+        if (!in_array($detected, $acceptable, true)) {
+            return "File content MIME ($detected) does not match claimed extension '.$ext'.";
+        }
+
+        return null; // Passed
     }
 }
 

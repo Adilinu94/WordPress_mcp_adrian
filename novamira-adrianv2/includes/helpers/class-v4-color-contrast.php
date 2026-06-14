@@ -74,7 +74,9 @@ final class V4_Color_Contrast {
     }
 
     /**
-     * WCAG relative luminance of an [r, g, b] triplet (0.0–1.0).
+     * WCAG 2.x relative luminance of an [r, g, b] triplet (0.0–1.0).
+     *
+     * Uses the WCAG 2.0/2.1/2.2 sRGB linearization threshold (0.04045).
      *
      * @param int[] $rgb [r, g, b] 0-255.
      * @return float
@@ -83,7 +85,7 @@ final class V4_Color_Contrast {
         $channels = [];
         foreach ([0, 1, 2] as $i) {
             $cs = (isset($rgb[$i]) ? max(0, min(255, (int) $rgb[$i])) : 0) / 255;
-            $channels[$i] = ($cs <= 0.03928)
+            $channels[$i] = ($cs <= 0.04045)
                 ? $cs / 12.92
                 : pow(($cs + 0.055) / 1.055, 2.4);
         }

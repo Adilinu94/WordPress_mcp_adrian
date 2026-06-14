@@ -1,6 +1,6 @@
 # 🚀 Framer → Elementor V4 Pipeline V2: Master Blueprint
 
-> **Version:** v0.9.0 | **Stand:** 2026-06-12
+> **Version:** v0.14.0 | **Stand:** 2026-06-14
 
 ## 🎯 Overview
 Ziel: Umsetzung eines stabilen, token-effizienten Framer-zu-V4-Workflows basierend auf einer **3-Wege-Symbiose**:
@@ -27,7 +27,9 @@ framer-v4-pipeline-v2/
 ├── schemas/
 │   └── v4-prop-type-schema.json          # Widget-Pflichtfelder fuer Validator
 ├── tests/
-│   └── pipeline.test.js                  # 33 Regressionstests, node --test
+│   └── pipeline.test.js                  # 114 Regressionstests in 36 Suiten, node --test
+├── tests/
+│   └── e2e.test.js                       # 18 E2E-Tests (inkl. 3 S14 ENH-16)
 └── scripts/
     ├── lib/
     │   ├── framer-utils.js               # Gemeinsame Utilities (wrapSize, walkTree, ...)
@@ -37,6 +39,21 @@ framer-v4-pipeline-v2/
     │   └── split-large-tree.js            # MCP-Plan-Generator: Section-Split großer Trees
     ├── convert-xml-to-v4.js              # Framer XML -> V4 Widget-Tree JSON
     ├── extract-framer-styles.js          # CSS-Properties + Variablen aus HTML-Export
+    ├── extract-framer-components.js      # A1: Component Extraction (wiederholte Muster)
+    ├── extract-framer-interactions.js    # A2: Interaction Extraction (CSS → V4 Pro)
+    ├── extract-framer-dark-mode.js       # Dark-Mode-CSS → V4 Variable-Set (ENH-10)
+    ├── extract-framer-forms.js           # A3: Form Extraction (→ V4 Atomic Forms)
+    ├── preflight-check.js                # Standalone Preflight System-Checks (S6)
+    ├── measure-quality-metrics.js        # ENH-13: Quality Metrics (DOM, GC, GV, Grid, Components)
+    ├── profile-pipeline.js               # ENH-14: Pipeline Performance Profiler (7 Phasen + Bottleneck)
+    └── wizard/
+        ├── shared.js                     # Shared helpers (log, runFile, recovery)
+        ├── cmd-preflight.js              # Preflight sub-command
+        ├── cmd-dry-run.js                # Dry-run sub-command
+        ├── cmd-preview.js                # Preview sub-command
+        ├── cmd-promote.js                # Promote sub-command
+        ├── cmd-serve.js                  # Serve sub-command
+        └── cmd-batch.js                  # Batch Multi-Page Build (S6)
     ├── extract-image-urls.js             # Bild-URLs aus HTML-Export
     ├── extract-responsive-breakpoints.js # Breakpoints aus CSS
     ├── resolve-fonts.js                  # Font-Referenzen aufloesen (FR;/GF; Prefix)
@@ -67,7 +84,7 @@ framer-v4-pipeline-v2/
 ### Phase 0: MCP-Verbindungs-Check (PFLICHT vor jedem Start!)
 ⚠️ **KRITISCHE REGEL:** Bevor irgendein Script oder Build gestartet wird, muss der Agent aktiv prüfen, ob alle benötigten MCP-Server verbunden sind.
 1. Prüfe Verfügbarkeit von **Unframer MCP** (z. B. via Tool-Liste oder Test-Call).
-2. Prüfe Verfügbarkeit von **Novamira MCP** (`novamira-adrianv2/setup-v4-foundation`).
+2. Prüfe Verfügbarkeit von **Novamira MCP** (`novamira/adrians-setup-v4-foundation`).
 3. *Falls ein MCP fehlt:* Sofort abbrechen und den User auffordern, die Umgebung (`.mcp.json`) neu zu laden oder die Verbindung zu prüfen. Kein Blindflug!
 
 ### Phase 1: Interaktive Steuerung & Orchestrierung
@@ -91,8 +108,8 @@ framer-v4-pipeline-v2/
    - Sammelt *alle* Verstöße (kein Fail-Fast) und blockiert den Build bei einem Score < 85%.
 
 ### Phase 4: Execution & Post-Build QA (Agenten-Aufgabe)
-8. **Foundation**: Agent ruft `novamira-adrianv2/setup-v4-foundation { post_id: <ID> }` auf.
-9. **Build**: Agent ruft `novamira/elementor-set-content` auf (⚠️ **NIEMALS** `novamira-adrianv2/batch-build-page` für Framer, um V3-Wrapper-Fehler zu vermeiden).
+8. **Foundation**: Agent ruft `novamira/adrians-setup-v4-foundation { post_id: <ID> }` auf.
+9. **Build**: Agent ruft `novamira/elementor-set-content` auf (⚠️ **NIEMALS** `adrians-batch-build-page` für Framer, um V3-Wrapper-Fehler zu vermeiden).
 10. **Slim Binding Check**: Agent speichert den Dump und führt aus:
     `node framer-v4-pipeline-v2/scripts/verify-build-binding.js elementor-dump.json`
     - Gibt *nur* die Elemente aus, bei denen Styles definiert, aber nicht in `settings.classes` gebunden sind (Invariant I). Spart tausende Tokens.
@@ -115,39 +132,32 @@ framer-v4-pipeline-v2/
 - [x] `post-build-auto-fix.js`: QA-Report → Auto-Fix MCP-Plan (contrast, alt-text, SEO, layout)
 - [x] `inject-animation-code.js`: Animation-Plan → MCP-Code-Injection (GSAP/CSS/JS)
 - [x] `section-compare.js`: Zombie-Browser-Fix (Bug 1) + Scroll-X-Fix (Bug 2)
-- [x] `framer-utils.js`: wrapSize, wrapDimensions, generateStyleId, walkTree, getWrappedSizeNumber, scaleWrappedSize
-- [x] `convert-xml-to-v4.js`: Framer XML -> V4 Tree, korrektes image-src url-Format
+- [x] `framer-utils.js`: wrapSize, wrapDimensions, generateStyleId, walkTree, getWrappedSizeNumber, scaleWrappedSize, **structuralHash**
+- [x] `convert-xml-to-v4.js`: Framer XML -> V4 Tree, C2 Grid Detection, C6 GV-Substitution, C1 Component Preservation
 - [x] `design-token-extractor.js`: CSS Custom Properties -> token-mapping + variables-plan
-- [x] `generate-global-classes.js`: Duplikat-Erkennung, GC-Vorschlaege, --execute (Fix E)
-- [x] `auto-scale-responsive.js`: V4 $$type-bewusstes Scaling, --tree/--output Flags
+- [x] `generate-global-classes.js`: Duplikat-Erkennung, C4 Semantic GC Naming, --execute (Fix E)
+- [x] `auto-scale-responsive.js`: V4 $$type-bewusstes Scaling, C5 Breakpoint-aware, --tree/--output Flags
 - [x] `framer-pre-build-validate.js`: 12 Guards, Score >= 85%, g12 seenPaths-Dedup, walk styles+settings
 - [x] `patch-v4-tree-media-ids.js`: Invariant IV compliant (image-attachment-id Wrapper, kein url:null)
 - [x] `verify-build-binding.js`: Invariant I, gc- Filter (kein false positive bei Global Classes)
-- [x] `validate-v4-tree.js`: Vollstaendiger Schema-Validator (Invariant I-V, widgetType-Kongruenz)
+- [x] `validate-v4-tree.js`: Vollstaendiger Schema-Validator, D1/D2/D3 Checks, --animation-plan Flag
 - [x] `cross-validate-sources.js`, `asset-to-wp-media.js` (inkl. --execute Fix B), `build-dependency-graph.js`, `export-mcp-xml.js`
 - [x] `schemas/v4-prop-type-schema.json` → via V2-Plugin REST-Endpoint + lokales Fixture für Tests
-- [x] `tests/pipeline.test.js`: 52 Tests in 10 Suites (node --test), alle gruen
-- [x] `tests/e2e.test.js`: 12 Tests, alle gruen
-- [x] `tests/integration.test.js`: 4 Tests, alle gruen
-
-### Phase 3.0 — PIPELINE_AUDIT_REPORT (15 Verbesserungen, abgeschlossen ✅)
-- [x] **P0-1:** `convert-xml-to-v4.js` — `--gc` jetzt Default true, `--no-gc` zum Deaktivieren
-- [x] **P0-2:** `validate-v4-tree.js` — 7. Check `DOM_DEPTH` (Tiefe ≤3 OK, 4-5 Warnung, ≥6 Error)
-- [x] **P0-3:** `framer-utils.js` — `wrapHtmlContent` Verfügbarkeit bestätigt
-- [x] **P1-1:** `generate-global-classes.js` — `--apply` Modus (lokale Tree-Deduplizierung ohne MCP)
-- [x] **P1-2:** `convert-xml-to-v4.js` — RC-08 Root-Container-Schutz (depth=0 behält Positionierung)
-- [x] **P1-3:** `post-build-auto-fix.js` — `--fix-dom-depth` Flag (rekursives Flatten bis Tiefe ≤3)
-- [x] **P1-4:** `run-post-build-qa.js` — `--tree` Modus + 4 Deep-Checks (GC_COVERAGE, DOM_DEPTH, RESPONSIVE_COVERAGE, UNUSED_STYLES)
-- [x] **P1-5:** `framer-pre-build-validate.js` — 13. Guard `GC_POTENTIAL` (Style-Duplikate zählen)
-- [x] **P2-1:** `auto-scale-responsive.js` — RC-14 + RC-19 (bereits ausgereift, kein Fix nötig)
-- [x] **P2-2:** `check-v4-requirements.js` — `--server-info` Flag (php_max_input_vars, memory_limit, Tree-Größe)
-- [x] **P2-3:** `parallel-pre-build.js` — `--gc-output` Flag statt hardcoded `gc-plan.json`
-- [x] **P2-4:** `framer-animation-extractor.js` — RC-20 Mapping +6 Einträge (rotate, skew, opacity+translateX, +scale, +rotate, Triple-Compound)
-- [x] **P2-5:** `tests/pipeline.test.js` — 5 neue Test-Blöcke (DOM-Depth, --no-gc, --apply, QA Deep-Checks, GC_POTENTIAL)
-- [x] **P2-6:** `extract-responsive-breakpoints.js` — `--container-queries` Flag + `extractAtBlock()` Helper
-- [x] **P2-7:** `section-compare.js` — Playwright+Puppeteer, Pixel-Diff, A11y (bereits ausgereift, kein Fix nötig)
-- [x] **Skill-Update:** `elementor-v4-build.md` (v2.0) mit allen neuen Features + 9 Fehlerbehebungs-Einträgen
-- [x] **Skills auf solar.local:** Alle 3 Skills per MCP Bridge installiert
+- [x] **`extract-framer-components.js`** (A1): Component Extraction — wiederholte Muster → Blueprints
+- [x] **`extract-framer-interactions.js`** (A2): CSS Transitions + Framer Appear → V4 Pro Interactions
+- [x] **`extract-framer-dark-mode.js`** (ENH-10): Dark-Mode-CSS → V4 Variable-Set (Brace-Counting, Light-Token-Matching)
+- [x] **`preflight-check.js`** (S6): Standalone 8-System-Checks (--help, --json)
+- [x] **`scripts/wizard/`** (S6): 7 Modul-Dateien — Wizard von 905→~300 Zeilen reduziert
+- [x] **FIX-7**: `mcp-bridge.js` callParallel() p-limit (concurrency=3, Worker-Pool, MCP_CONCURRENCY env var)
+- [x] **ENH-11**: `convert-xml-to-v4.js` JSDoc für 9 Kernfunktionen
+- [x] **wizard.js batch**: `--pages` + `--post-ids` Multi-Page Subcommand (S6)
+- [x] `tests/pipeline.test.js`: **114 Tests in 36 Suiten** (node --test), alle gruen
+- [x] `tests/e2e.test.js`: **15 Tests**, alle gruen (+3 S13 ENH-12)
+- [x] `tests/integration.test.js`: **7 Tests** (4 pass, 3 skip ohne --live)
+- [x] **Sprint 9**: ENH-14 Profile-Pipeline, ENH-15 axe-core A11y (--a11y/--a11y-output), FIX-15 WCAG 2.2 PHPUnit, FIX-16/17 Media-Security
+- [x] **ENH-16 FramerExport CLI**: Wizard --non-interactive läuft vollständig durch. FramerExport v4.3.8, spawnWithRetry mit shell:true-Eskalation für Bash/Windows-Kompatibilität.
+- [x] GSD-Projekt: `.planning/` mit PROJECT.md, REQUIREMENTS.md, ROADMAP.md, PLAN-1-7.md, STATE.md, config.json
+- [x] `--help` Blocks: A1, A2, A3 mit einheitlichem CLI-Pattern (parseArgs help Option)
 
 ### Phase 0.5.x Security & QA (abgeschlossen)
 - [x] **0.5.3:** PHP-Sandbox-Security-Audit — B8-CRITICAL Bug in `is_available()` gefixt, Permission-Callbacks entkoppelt
@@ -179,13 +189,11 @@ framer-v4-pipeline-v2/
 - [x] **Schema:** `schemas/v4-prop-type-schema.json` Fixture für E2E-Tests
 - [x] **Live getestet:** MCP-Bridge `--self-test` + check-v4 `--auto-call` gegen solar.local ✅
 
-### In Arbeit
-- [ ] End-to-End Test mit echter Framer-URL
-
-### Bekannte Issues (Low Priority)
-- [x] GitHub Token in Remote-URL — ✅ Bereinigt (2026-06-12)
-- [x] Rollback Cleanup — ✅ `cleanupOldBackups(24)` + CLI `--cleanup` (2026-06-12)
-- [x] split-large-tree.js Timeout — ✅ Batch-Fallback (>400 Elemente / >800KB) (2026-06-12)
+### Sprint 7+8 (abgeschlossen)
+- [x] **Sprint 7** Quality Hardening: FIX-10/11/12, 88→100 Tests
+- [x] **Sprint 8** Live Integration: ENH-12/13, FIX-13/14, 100→105 Pipeline / 12→15 E2E
+- [x] End-to-End Test mit echter Framer-URL (--non-interactive Mode)
+- [x] .planning/ Docs synchronisiert (REQUIREMENTS, ROADMAP, STATE, PROJECT)
 
 ### Phase 1.4+ — CI, Performance, UX, Advanced, A11y (abgeschlossen ✅)
 - [x] **1.4:** `.github/workflows/ci.yml` — 7 Jobs (test, e2e, schema, mcp-mock, visual, lint, syntax)
@@ -215,7 +223,7 @@ framer-v4-pipeline-v2/
 | IV | Image-Src url-Key | Wenn `id` gesetzt ist, darf `url`-Key nicht existieren (nicht mal als `null`) |
 | V | custom_css Format | `custom_css` immer `{"raw":"..."}` - nie plain String (crasht die Site) |
 
-**wizard.js Phase-Übersicht (v0.8.0):**
+**wizard.js Phase-Übersicht (v0.11.0):**
 | Phase | Beschreibung | Fail-Fast |
 |-------|-------------|-----------|
 | 0 | MCP Connector Check | ✅ |
@@ -227,17 +235,17 @@ framer-v4-pipeline-v2/
 | C | Pre-Build Validation (12 Guards) | ✅ (wenn Score <85%) |
 | 1.3 | Rollback-Backup-Plan generieren | Nein |
 | 1.4 | Split-Large-Tree-Check | Nein |
-| D | Build-Manifest Generierung | — | Framer -> V4 = `elementor-set-content`. V3 -> V4 Migration = `novamira-adrianv2/batch-build-page`.
+| D | Build-Manifest Generierung | — | Framer -> V4 = `elementor-set-content`. V3 -> V4 Migration = `adrians-batch-build-page`.
 
 ---
 
 ## ✅ Lokale Verifikation
 
 ```bash
-npm test                # 52 pipeline tests
-npm run test:e2e        # 12 e2e tests
-npm run test:all        # 68 tests total (52 pipeline + 12 e2e + 4 integration)
-npm run test:integration # 4 integration tests
+npm test                # 114 pipeline tests (36 Suiten)
+npm run test:e2e        # 18 e2e tests (inkl. 3 S14 ENH-16)
+npm run test:all        # 139 tests total (114 pipeline + 18 e2e + 7 integration)
+npm run test:integration # 7 integration tests (4 pass, 3 skip ohne --live)
 npm run test:bridge     # mcp-bridge.js --self-test
 npm run test:mcp-mock   # Integration tests gegen Mock-Server
 npm run test:schema     # sync-schema.js --validate
@@ -246,6 +254,14 @@ npm run lint:version    # CHANGELOG.md vs package.json
 npm run check-v4-auto   # check-v4-requirements.js --auto-call
 npm run gc-execute      # generate-global-classes.js --execute
 npm run post-build-qa   # run-post-build-qa.js
+npm run extract-components  # A1: Component Extraction
+npm run extract-interactions # A2: Interaction Extraction
+npm run extract-dark-mode  # Dark-Mode CSS Extraction (ENH-10)
+npm run extract-forms   # A3: Form Extraction
+npm run preflight-check # Standalone Preflight Checks (S6)
+npm run wizard-batch    # Multi-Page Batch Build (S6)
+npm run measure-quality  # ENH-13: Quality Metrics Measurement
+npm run test:integration-live # FIX-13: Live Integration Tests
 node --check wizard.js
 node --check scripts/lib/mcp-bridge.js
 ```

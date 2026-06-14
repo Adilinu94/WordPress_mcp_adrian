@@ -109,7 +109,20 @@ class Batch_Media_Upload
             $alt      = $file['alt_text'] ?? '';
             $title    = $file['title'] ?? '';
 
-            if (empty($filename) || empty($b64)) {
+            // ── FIX-16: Filename sanitization for batch uploads ──
+            $filename = sanitize_file_name($filename);
+            if ($filename === '' || str_starts_with($filename, '.')) {
+                $results[] = [
+                    'filename'    => $file['filename'] ?? '',
+                    'wp_media_id' => null,
+                    'wp_url'      => null,
+                    'error'       => 'Invalid filename — must not be empty, dot-prefixed, or contain path components.',
+                ];
+                $failed++;
+                continue;
+            }
+
+            if (empty($b64)) {
                 $results[] = [
                     'filename'    => $filename,
                     'wp_media_id' => null,

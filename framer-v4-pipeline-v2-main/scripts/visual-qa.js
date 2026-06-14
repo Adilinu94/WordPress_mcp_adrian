@@ -27,17 +27,17 @@
  * ── Server-seitige QA via Novamira MCP (empfohlen nach Build) ───────────────
  * Zusätzlich zu den Browser-Checks sollte der Agent diese MCP-Abilities aufrufen:
  *
- *   novamira-adrianv2/visual-qa { post_id }
+ *   novamira/adrians-visual-qa { post_id }
  *     → Server-seitig: overflow-Risiken, z-index Konflikte, negative margins,
  *       absolute-positioned overlap — OHNE Browser nötig
  *
- *   novamira-adrianv2/responsive-audit { post_id }
+ *   novamira/adrians-responsive-audit { post_id }
  *     → Breakpoint-Coverage: aktive Breakpoints, v4 style variants, Visibility
  *
- *   novamira-adrianv2/class-audit { scope: "post_ids", post_ids: [<ID>] }
+ *   novamira/adrians-class-audit { scope: "post_ids", post_ids: [<ID>] }
  *     → Unused GCs, fehlende Klassen-Bindungen
  *
- *   novamira-adrianv2/layout-audit { post_id }
+ *   novamira/adrians-layout-audit { post_id }
  *     → Unnötige Container-Verschachtelung, single-child wrapper, pass-through
  *
  * Usage:
@@ -47,6 +47,7 @@
  *   node scripts/visual-qa.js --url https://meine-seite.de/?p=123 --dry-run
  *   node scripts/visual-qa.js --url https://meine-seite.de/?p=123 --no-browser (alias for --dry-run)
  *   node scripts/visual-qa.js --url https://meine-seite.de/?p=123 --skip-a11y
+ *   node scripts/visual-qa.js --url https://meine-seite.de/?p=123 --a11y --a11y-output reports/a11y-report.json
  *
  * Exit codes:
  *   0 = alle Checks bestanden
@@ -70,7 +71,9 @@ const { values: args } = parseArgs({
     screenshots:      { type: 'string' },
     'dry-run':        { type: 'boolean', default: false },
     'no-browser':     { type: 'boolean', default: false },
+    'a11y':           { type: 'boolean', default: false },
     'skip-a11y':      { type: 'boolean', default: false },
+    'a11y-output':    { type: 'string' },
     timeout:          { type: 'string', default: '30000' },
     verbose:          { type: 'boolean', default: false },
     help:             { type: 'boolean', default: false },
@@ -89,8 +92,10 @@ OPTIONEN:
   --url URL           WordPress-Seiten-URL mit Post-ID (required)
   --output FILE       JSON-Report-Ausgabepfad  [default: stdout]
   --screenshots DIR   Verzeichnis für Screenshots  [default: kein]
-  --dry-run           Kein echter Browser, simuliert Ablauf (für CI)
+  --a11y              A11y-Audit explizit aktivieren (standardmäßig an)
   --skip-a11y         axe-core Accessibility-Audit überspringen
+  --a11y-output FILE  Standalone A11y-Report als JSON ausgeben
+  --dry-run           Kein echter Browser, simuliert Ablauf (für CI)
   --timeout MS        Navigation-Timeout in ms  [default: 30000]
   --verbose           Ausführliche Logs
   --help              Diese Hilfe
@@ -125,7 +130,12 @@ const BREAKPOINTS = [
 
 const PAGE_TIMEOUT = parseInt(args.timeout, 10);
 const DRY_RUN = args['dry-run'] || args['no-browser'];
-const SKIP_A11Y = args['skip-a11y'];
+const SKIP_A11Y = args['skip-a11y'] || false;
+const EXPLICIT_A11Y = args['a11y'] || false;
+const A11Y_OUTPUT = args['a11y-output'] || null;
+
+// If --a11y is explicitly passed, force a11y ON even if --skip-a11y was also passed
+const A11Y_ENABLED = EXPLICIT_A11Y ? true : !SKIP_A11Y;
 
 /** WCAG levels to audit with axe-core */
 const A11Y_TAGS = ['wcag2a', 'wcag2aa', 'wcag22aa'];
@@ -173,7 +183,7 @@ async function detectBrowserBackend() {
  * @returns {object|null}  Axe results or null if unavailable.
  */
 async function runAxeAudit(page, backend) {
-  if (SKIP_A11Y) {
+  if (!A11Y_ENABLED) {
     log('  A11y: skipped (--skip-a11y flag)');
     return null;
   }
@@ -443,7 +453,7 @@ async function main() {
   const url = args.url;
   log(`URL: ${url}`);
   log(`Dry-run: ${DRY_RUN}`);
-  log(`A11y audit: ${SKIP_A11Y ? 'skipped' : 'enabled'}`);
+  log(`A11y audit: ${A11Y_ENABLED ? 'enabled' : 'skipped'}`);
 
   // Prepare screenshot dir
   let screenshotDir = null;
@@ -504,14 +514,14 @@ async function main() {
       failed_breakpoints: failCount,
       checks_pass: checkTotals.pass,
       checks_fail: checkTotals.fail,
-      a11y_audit: !SKIP_A11Y && backend !== 'dry-run',
+      a11y_audit: A11Y_ENABLED && backend !== 'dry-run',
       a11y_violations_total: a11yAggregate.violations,
       a11y_critical_total: a11yAggregate.critical,
       timestamp: new Date().toISOString(),
     },
     a11y: {
-      enabled: !SKIP_A11Y && backend !== 'dry-run',
-      backend: SKIP_A11Y ? 'disabled' : (backend === 'dry-run' ? 'unavailable' : backend),
+      enabled: A11Y_ENABLED && backend !== 'dry-run',
+      backend: !A11Y_ENABLED ? 'disabled' : (backend === 'dry-run' ? 'unavailable' : backend),
       aggregate: a11yAggregate,
     },
     results,
@@ -528,11 +538,38 @@ async function main() {
     process.stdout.write(reportJson + '\n');
   }
 
+  // Standalone a11y report (--a11y-output)
+  if (A11Y_OUTPUT) {
+    const allViolations = [];
+    const seenIds = new Set();
+    for (const r of results) {
+      const violations = r.details?.a11y?.violations || [];
+      for (const v of violations) {
+        if (!seenIds.has(v.id)) {
+          seenIds.add(v.id);
+          allViolations.push(v);
+        }
+      }
+    }
+    const a11yReport = {
+      url,
+      timestamp: new Date().toISOString(),
+      tags: A11Y_TAGS,
+      backend: !A11Y_ENABLED ? 'disabled' : (backend === 'dry-run' ? 'unavailable' : backend),
+      aggregate: a11yAggregate,
+      violations: allViolations,
+    };
+    const a11yOutPath = resolve(A11Y_OUTPUT);
+    mkdirSync(resolve(a11yOutPath, '..'), { recursive: true });
+    writeFileSync(a11yOutPath, JSON.stringify(a11yReport, null, 2), 'utf8');
+    log(`A11y Report → ${a11yOutPath}`);
+  }
+
   // Human summary to stderr
   const C = { reset: '\x1b[0m', bold: '\x1b[1m', red: '\x1b[31m', green: '\x1b[32m', yellow: '\x1b[33m', cyan: '\x1b[36m' };
   process.stderr.write(`\n${C.bold}visual-qa.js${C.reset} ${DRY_RUN ? C.yellow + '[DRY-RUN]' + C.reset : ''}\n`);
   process.stderr.write(`${C.cyan}URL:${C.reset} ${url}\n`);
-  if (!SKIP_A11Y && backend !== 'dry-run') {
+  if (A11Y_ENABLED && backend !== 'dry-run') {
     process.stderr.write(`${C.cyan}A11y:${C.reset} axe-core ${A11Y_TAGS.join('/')}  `);
     if (a11yAggregate.violations === 0) {
       process.stderr.write(`${C.green}0 violations${C.reset}\n`);

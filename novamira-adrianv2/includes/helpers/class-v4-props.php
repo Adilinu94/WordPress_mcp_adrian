@@ -257,6 +257,40 @@ final class V4_Props {
     }
 
     /**
+     * Returns the canonical V4 property-type schema.
+     *
+     * Used by the REST endpoint GET /wp-json/novamira/v1/prop-schema
+     * to feed sync-schema.js with the live widget prop definitions.
+     *
+     * @return array Schema object with version, types, and properties.
+     */
+    public static function get_schema(): array {
+        return [
+            'version'    => '1.0.0',
+            'types'      => [
+                'e-heading', 'e-paragraph', 'e-button', 'e-image',
+                'e-svg', 'e-divider', 'e-flexbox', 'e-div-block',
+                'e-component', 'e-field-label', 'e-field-input', 'e-field-submit',
+            ],
+            'properties' => [
+                'title'        => ['type' => 'html-v3', 'widgets' => ['e-heading']],
+                'paragraph'    => ['type' => 'html-v3', 'widgets' => ['e-paragraph']],
+                'text'         => ['type' => 'html-v3', 'widgets' => ['e-button']],
+                'image'        => ['type' => 'image',   'widgets' => ['e-image']],
+                'image-src'    => ['type' => 'image-src','widgets' => ['e-image']],
+                'svg-icon'     => ['type' => 'html-v3', 'widgets' => ['e-svg']],
+                'link'         => ['type' => 'link',    'widgets' => ['e-button']],
+                'classes'      => ['type' => 'classes', 'widgets' => ['*']],
+                'tag'          => ['type' => 'string',  'widgets' => ['e-heading', 'e-flexbox', 'e-div-block']],
+                'flex-direction' => ['type' => 'string', 'widgets' => ['e-flexbox']],
+                'component-id' => ['type' => 'string',  'widgets' => ['e-component']],
+                'field-label'  => ['type' => 'html-v3', 'widgets' => ['e-field-label']],
+                'field-placeholder' => ['type' => 'string', 'widgets' => ['e-field-input']],
+            ],
+        ];
+    }
+
+    /**
      * Checks whether Elementor atomic (V4) elements are available AND will persist.
      *
      * @return bool True if atomic element types are registered/available.

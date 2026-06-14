@@ -36,6 +36,9 @@
 
 'use strict';
 
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /**
@@ -98,6 +101,40 @@ export class McpClient {
     this.baseDelayMs = options.baseDelayMs ?? 1000;
     this.timeout     = options.timeout ?? 30000;
     this.verbose     = options.verbose ?? false;
+    this._closed     = false;
+  }
+
+  /**
+   * Cleanly closes the client, preventing UV_HANDLE_CLOSING crashes
+   * on Windows when process.exit() is called with active keep-alive.
+   *
+   * On Windows, undici's keep-alive pool holds async handles that
+   * trigger a libuv assertion when process.exit() fires. This method
+   * destroys the global dispatcher to release those handles.
+   *
+   * Safe to call multiple times.
+   */
+  close() {
+    if (this._closed) return;
+    this._closed = true;
+
+    // Destroy undici's global dispatcher to release async handles.
+    // Without this, Node's global fetch() keep-alive pool triggers
+    // "Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)" on
+    // Windows when process.exit() is called.
+    try {
+      const undici = require('undici');
+      const dispatcher = undici.getGlobalDispatcher();
+      if (dispatcher) {
+        if (typeof dispatcher.destroy === 'function') dispatcher.destroy();
+        else if (typeof dispatcher.close === 'function') dispatcher.close();
+      }
+    } catch {
+      // undici is a Node 18+ internal; if require fails (bundled
+      // differently), the Connection:close header on each request
+      // already prevents keep-alive. Callers use process._exit()
+      // on Windows as the final fallback against libuv assertions.
+    }
   }
 
   // ── Public API ──────────────────────────────────────────────────────────
@@ -109,7 +146,7 @@ export class McpClient {
    * MCP connector. This method serves as an HTTP fallback for scripts
    * that need direct API access (e.g., pre-flight checks, schema sync).
    *
-   * @param {string} ability    Ability name (e.g. "novamira-adrianv2/greet").
+   * @param {string} ability    Ability name (e.g. "novamira/adrians-greet").
    * @param {object} [params={}] Ability parameters.
    * @param {object} [retryOpts] Per-call retry overrides.
    * @param {number} [retryOpts.maxRetries]
@@ -227,11 +264,18 @@ export class McpClient {
 
   /**
    * Single fetch with timeout (Node 18+ AbortSignal.timeout).
+   * Forces Connection:close to prevent undici keep-alive from
+   * triggering UV_HANDLE_CLOSING assertion on Windows process.exit.
    */
   async _send(url, fetchOpts) {
+    if (this._closed) throw new Error('McpClient is closed');
     return fetch(url, {
       ...fetchOpts,
       signal: AbortSignal.timeout(this.timeout),
+      headers: {
+        ...fetchOpts.headers,
+        'Connection': 'close',
+      },
     });
   }
 

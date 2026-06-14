@@ -8,11 +8,17 @@
  * Uses McpClient (Phase 1.2) for HTTP calls with exponential-backoff
  * retry on 5xx / network errors / timeouts.
  *
- * SOURCE OF TRUTH: wp-json/novamira-adrianv2/v1/prop-schema
+ * SOURCE OF TRUTH: wp-json/novamira/v1/prop-schema
  * TARGET:          schemas/v4-prop-type-schema.json
  *
  * Fail-Fast: exit code 1 if the endpoint is unreachable after all
  * retries, returns non-200, or the response is not valid JSON.
+ *
+ * CRITICAL: This script never calls process.exit(). On Windows,
+ * Node's global fetch() (undici) triggers a libuv assertion
+ * (UV_HANDLE_CLOSING) when process.exit() runs cleanup. Instead,
+ * we set process.exitCode and destroy undici's dispatcher — Node
+ * exits naturally when the event loop drains.
  *
  * Usage:
  *   node scripts/sync-schema.js
@@ -34,6 +40,7 @@
 import { parseArgs } from 'node:util';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { McpClient } from './lib/mcp-client.js';
 
 // ─── CLI ─────────────────────────────────────────────────────────────────────
@@ -67,39 +74,50 @@ OPTIONS:
 ENV:
   WP_API_URL     WordPress REST base URL
 `);
+  // --help never makes HTTP requests, so process.exit() is safe
   process.exit(0);
 }
 
 const log   = (...m) => { if (args.verbose) process.stderr.write('[sync-schema] ' + m.join(' ') + '\n'); };
 const warn  = (...m) => process.stderr.write('[sync-schema] WARN: ' + m.join(' ') + '\n');
-const fatal = (m, c = 1) => { process.stderr.write('[sync-schema] FATAL: ' + m + '\n'); process.exit(c); };
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
 const WP_BASE_URL  = args.url || process.env.WP_API_URL || '';
 const OUTPUT_PATH  = args.output
   ? resolve(args.output)
-  : resolve(dirname(new URL(import.meta.url).pathname), '..', 'schemas', 'v4-prop-type-schema.json');
+  : resolve(dirname(fileURLToPath(import.meta.url)), '..', 'schemas', 'v4-prop-type-schema.json');
 const TIMEOUT_MS   = parseInt(args.timeout, 10);
-const API_PATH     = '/wp-json/novamira-adrianv2/v1/prop-schema';
+const API_PATH     = '/wp-json/novamira/v1/prop-schema';
 
-if (!WP_BASE_URL) {
-  fatal(
-    'No WordPress URL configured. Set --url or WP_API_URL env var.\n' +
-    '  Example: node scripts/sync-schema.js --url http://solar.local\n' +
-    '  Or set:  export WP_API_URL=http://solar.local'
-  , 2);
-}
+// ─── Sentinel for fatal() unwinding ──────────────────────────────────────────
+// fatal() sets exitCode, destroys the client, and throws this sentinel
+// to unwind the stack without calling process.exit(). The top-level
+// runner catches it and lets Node exit naturally.
+const FATAL = Symbol('fatal');
+
+let _client   = null;
+let _exitCode = 0;
+
+const fatal = (m, c = 1) => {
+  process.stderr.write('[sync-schema] FATAL: ' + m + '\n');
+  _exitCode = c;
+  // _client.close() is handled by the .finally() block in the runner.
+  // The FATAL sentinel unwinds the stack so the runner sets exitCode
+  // and Node exits naturally when the event loop drains.
+  throw FATAL;
+};
 
 // ─── Fetch (Phase 1.2: resilient McpClient) ──────────────────────────────────
 
 async function fetchSchema() {
-  const client = new McpClient(WP_BASE_URL, {
+  _client = new McpClient(WP_BASE_URL, {
     maxRetries: 3,
     baseDelayMs: 1000,
     timeout: TIMEOUT_MS,
     verbose: args.verbose,
   });
+  const client = _client;
 
   log(`Fetching schema from ${client.baseUrl}${API_PATH} (retry: up to ${client.maxRetries}x)...`);
 
@@ -155,6 +173,14 @@ function writeSchema(schema) {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
+  if (!WP_BASE_URL) {
+    fatal(
+      'No WordPress URL configured. Set --url or WP_API_URL env var.\n' +
+      '  Example: node scripts/sync-schema.js --url http://solar.local\n' +
+      '  Or set:  export WP_API_URL=http://solar.local'
+    , 2);
+  }
+
   const schema = await fetchSchema();
 
   // Ensure output dir exists
@@ -167,11 +193,26 @@ async function main() {
 
   process.stderr.write(`[sync-schema] ✅ Schema synced from ${WP_BASE_URL}\n`);
   process.stderr.write(`[sync-schema]    Version: ${schema.version || 'unknown'} → ${OUTPUT_PATH}\n`);
-  process.exit(0);
 }
 
-main().catch(err => {
-  process.stderr.write('[sync-schema] FATAL: ' + err.message + '\n');
-  if (args.verbose) process.stderr.write(err.stack + '\n');
-  process.exit(1);
+// ─── Top-Level Runner (no process.exit() — Node exits naturally) ─────────────
+// On Windows, process.exit() triggers a libuv assertion in undici's async
+// handles. We destroy the dispatcher in _client.close() and let the event
+// loop drain. Node exits when no more work is pending.
+
+main().then(() => {
+  // Success path — _exitCode stays 0
+}).catch(err => {
+  if (err !== FATAL) {
+    // Unexpected error (not from fatal())
+    process.stderr.write('[sync-schema] FATAL: ' + (err.message || String(err)) + '\n');
+    if (args.verbose && err.stack) process.stderr.write(err.stack + '\n');
+    _exitCode = 1;
+  }
+  // FATAL already set _exitCode and wrote the message
+}).finally(() => {
+  if (_client) _client.close();
+  process.exitCode = _exitCode;
+  // No process.exit() — Node exits cleanly when the event loop drains.
+  // undici's global dispatcher was already destroyed by _client.close().
 });
