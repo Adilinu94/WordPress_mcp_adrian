@@ -55,7 +55,7 @@ EINGABE (mindestens eine):
   --framer-css-map FILE  framer-css-map.json
 
 OPTIONEN:
-  --design-system FILE    Output von novamira-adrianv2/export-design-system
+  --design-system FILE    Output von novamira/adrians-export-design-system
                           Löst e-gv-* IDs automatisch auf (by hex + by label).
                           Empfohlen nach Phase 3 (batch-create-variables).
   --existing-tokens FILE  Bestehendes token-mapping.json für Update
@@ -65,8 +65,7 @@ OPTIONEN:
   --help                  Diese Hilfe
 
 EXIT-CODES:
-  0 = Tokens extrahiert, Mapping erstellt
-  1 = Warnungen (einige Werte nicht auflösbar)
+  0 = Tokens extrahiert (unmapped tokens produce warnings, not errors)
   2 = Keine Eingabedatei gefunden
 `);
   if (args.help) process.exit(0);
@@ -133,7 +132,7 @@ function tokenLabel(name) {
 }
 
 /**
- * Baut einen Lookup-Index aus dem Output von novamira-adrianv2/export-design-system.
+ * Baut einen Lookup-Index aus dem Output von novamira/adrians-export-design-system.
  * Unterstützt beide Schlüssel: byHex (für Farben) und byLabel (für alle Typen).
  * Format: { global_variables: [{id, label, type, value}], global_colors: [{id, label, color}] }
  */
@@ -228,18 +227,18 @@ function buildVariablesPlan(tokenMapping) {
   return {
     meta: { totalVariables: variables.length, generatedAt: new Date().toISOString() },
     mcpCall: {
-      ability_name: 'novamira-adrianv2/batch-create-variables',
+      ability_name: 'novamira/adrians-batch-create-variables',
       parameters: { variables: variables.map(v => ({ label: v.label, type: v.type, value: v.value })), strategy: 'skip' },
     },
     variables,
     instructions: [
-      '1. novamira-adrianv2/setup-v4-foundation aufrufen → base classes + variable IDs zurücklesen',
-      '2. variables-plan.json mcpCall ausführen: novamira-adrianv2/batch-create-variables',
-      '3. novamira-adrianv2/export-design-system what=all → e-gv-* IDs der erstellten Variablen holen',
+      '1. novamira/adrians-setup-v4-foundation aufrufen → base classes + variable IDs zurücklesen',
+      '2. variables-plan.json mcpCall ausführen: novamira/adrians-batch-create-variables',
+      '3. adrians-export-design-system what=all → e-gv-* IDs der erstellten Variablen holen',
       '4. e-gv-* IDs in token-mapping.json eintragen (gv_id Felder)',
       '5. convert-xml-to-v4.js mit --tokens token-mapping.json ausführen',
-      '6. Nach Build: novamira-adrianv2/visual-qa post_id=<ID> zur Server-seitigen QA',
-      '7. novamira-adrianv2/responsive-audit post_id=<ID> für Breakpoint-Analyse',
+      '6. Nach Build: novamira/adrians-visual-qa post_id=<ID> zur Server-seitigen QA',
+      '7. novamira/adrians-responsive-audit post_id=<ID> für Breakpoint-Analyse',
     ],
   };
 }
@@ -289,7 +288,7 @@ const existingMapping = (args['existing-tokens'] && fs.existsSync(args['existing
   ? JSON.parse(fs.readFileSync(args['existing-tokens'], 'utf8')) : null;
 
 // Design-System für automatische GV-ID-Auflösung laden
-// (Output von: novamira-adrianv2/export-design-system { what: "all" })
+// (Output von: novamira/adrians-export-design-system { what: "all" })
 let dsIndex = null;
 if (args['design-system']) {
   if (!fs.existsSync(args['design-system'])) {
@@ -324,4 +323,7 @@ if (args['variables-plan']) {
 }
 
 process.stderr.write(`${tokenMapping.meta.mappedCount} mapped, ${tokenMapping.meta.unmappedCount} need e-gv-* IDs\n`);
-process.exit(tokenMapping.meta.unmappedCount > 0 ? 1 : 0);
+process.exit(0);
+// NB: unmapped tokens are normal on first run — they need e-gv-* IDs
+//     assigned via batch-create-variables. The variables-plan.json
+//     includes the MCP call to do this.

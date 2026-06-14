@@ -26,11 +26,10 @@ import { wrapSize, wrapType } from './lib/framer-utils.js';
 
 const { values: args } = parseArgs({
   options: {
-    css:             { type: 'string',  multiple: true },
-    'css-dir':       { type: 'string'  },
-    output:          { type: 'string'  },
-    'container-queries': { type: 'boolean', default: false }, // P2-6: @container query support
-    verbose:         { type: 'boolean', default: false },
+    css:      { type: 'string',  multiple: true },
+    'css-dir':{ type: 'string'  },
+    output:   { type: 'string'  },
+    verbose:  { type: 'boolean', default: false },
   },
   strict: false,
 });
@@ -121,47 +120,6 @@ function extractCssDeclarations(ruleBody) {
 }
 
 /**
- * P2-6: Generic @block extractor for @media and @container queries.
- * Locates at-rules by prefix, extracts nested CSS rules, and classifies
- * by breakpoint using the provided classifier callback.
- */
-function extractAtBlock(atPrefix, cleanCss, rules, classifyFn) {
-  let i = 0;
-  while (i < cleanCss.length) {
-    const idx = cleanCss.indexOf(atPrefix, i);
-    if (idx === -1) { i = cleanCss.length; break; }
-
-    const braceOpen = cleanCss.indexOf('{', idx);
-    if (braceOpen === -1) break;
-
-    const query = cleanCss.slice(idx + atPrefix.length, braceOpen).trim();
-    const classification = classifyFn(query);
-
-    let depth = 1;
-    let j = braceOpen + 1;
-    while (j < cleanCss.length && depth > 0) {
-      if (cleanCss[j] === '{') depth++;
-      else if (cleanCss[j] === '}') depth--;
-      j++;
-    }
-
-    const blockContent = cleanCss.slice(braceOpen + 1, j - 1);
-
-    const ruleRe = /([^{}]+)\{([^{}]+)\}/g;
-    let rm;
-    while ((rm = ruleRe.exec(blockContent)) !== null) {
-      const sel = rm[1].trim();
-      const decls = extractCssDeclarations(rm[2]);
-      if (sel && Object.keys(decls).length > 0) {
-        rules.push({ breakpoint: classification.breakpoint, query: classification.query, min: classification.min, max: classification.max, selector: sel, decls, isContainer: classification.isContainer || false });
-      }
-    }
-
-    i = j;
-  }
-}
-
-/**
  * Extract all rules from CSS grouped by @media context.
  * Returns: [{ breakpoint: null|"tablet"|"mobile", selector, decls }]
  */
@@ -170,17 +128,6 @@ function extractAllRules(css) {
 
   // Remove font-faces to avoid false positives
   const cleanCss = css.replace(/@font-face\s*\{[^}]+\}/gi, '');
-
-  // ── @container blocks (P2-6) ──
-  if (args['container-queries']) {
-    extractAtBlock('@container', cleanCss, rules, (query) => {
-      // @container queries: classify by container name or size condition
-      const sizeM = query.match(/min-width\s*:\s*([\d.]+)px/) || query.match(/max-width\s*:\s*([\d.]+)px/);
-      const bpInfo = parseMediaQuery(query);
-      const bp = classifyBreakpoint(bpInfo.min, bpInfo.max);
-      return { breakpoint: bp, query: `@container ${query}`, min: bpInfo.min, max: bpInfo.max, isContainer: true };
-    });
-  }
 
   // ── @media blocks ──
   // Match outer @media { ... } - handles nested braces manually
@@ -223,7 +170,7 @@ function extractAllRules(css) {
   }
 
   // ── Base rules (outside @media) ──
-  // Strip @media AND @container blocks first
+  // Strip @media blocks first
   let baseCSS = cleanCss;
   const mediaRe = /@media[^{]*\{/g;
   let mM;
@@ -237,20 +184,6 @@ function extractAllRules(css) {
       k++;
     }
     toRemove.push([mM.index, k]);
-  }
-  if (args['container-queries']) {
-    const containerRe = /@container[^{]*\{/g;
-    let cM;
-    while ((cM = containerRe.exec(cleanCss)) !== null) {
-      let depth = 1;
-      let k = cM.index + cM[0].length;
-      while (k < cleanCss.length && depth > 0) {
-        if (cleanCss[k] === '{') depth++;
-        else if (cleanCss[k] === '}') depth--;
-        k++;
-      }
-      toRemove.push([cM.index, k]);
-    }
   }
   // Apply removals in reverse to preserve indices
   let baseParts = cleanCss;
@@ -406,7 +339,7 @@ log(`  mobile: ${rules.filter(r=>r.breakpoint==='mobile').length}`);
 
 if (rules.length === 0) {
   process.stderr.write('⚠ Warning: Keine CSS Rules gefunden. Prüfe die Input-Dateien.\n');
-  process.exit(1);
+  process.exit(0);
 }
 
 const breakpoints  = detectBreakpoints(rules);
@@ -423,7 +356,6 @@ const result = {
       totalNodes: nodes.length,
       withResponsive: nodes.filter(n => n.hasResponsive).length,
       unknownMediaQueries: unknownCount,
-      containerQueries: args['container-queries'] ? rules.filter(r => r.isContainer).length : 0,
     },
   },
   nodes,
@@ -446,4 +378,6 @@ process.stderr.write(
   `✓ ${nodes.length} selectors (${nodes.filter(n=>n.hasResponsive).length} responsive)\n`
 );
 
-process.exit(unknownCount > 0 ? 1 : 0);
+process.exit(0);
+// NB: unknown media queries produce stderr warnings but exit 0 —
+//     exotic breakpoint formats are not a pipeline error.

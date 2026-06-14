@@ -267,7 +267,8 @@ const assets = [...seen.values()].map(({ url, sources }) => ({
 
 if (assets.length === 0) {
   process.stderr.write('⚠ Warning: No URLs found in the provided sources.\n');
-  process.exit(1);
+  process.stderr.write('  (FramerExport embeds assets locally — this is normal for local exports.)\n');
+  process.exit(0);
 }
 
 // ─────────────────────────────────────────────
