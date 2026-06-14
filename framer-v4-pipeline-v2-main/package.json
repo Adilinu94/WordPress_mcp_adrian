@@ -1,6 +1,6 @@
 {
   "name": "framer-v4-pipeline-v2",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "description": "Standalone Framer to Elementor V4 pre-build pipeline scripts",
   "type": "module",
   "private": true,
@@ -62,7 +62,8 @@
     "lint:version": "node --input-type=module -e \"import{readFileSync}from'node:fs';const p=JSON.parse(readFileSync('package.json','utf8'));const c=readFileSync('CHANGELOG.md','utf8');if(!c.includes(p.version)){process.stderr.write('CHANGELOG.md missing v'+p.version+'\\\\n');process.exit(1)}console.log('v'+p.version+' OK')\"",
     "measure-quality": "node scripts/measure-quality-metrics.js",
     "test:integration-live": "node --test tests/integration.test.js -- --live",
-    "profile-pipeline": "node scripts/profile-pipeline.js"
+    "profile-pipeline": "node scripts/profile-pipeline.js",
+    "deploy-plugin": "bash novamira-adrianv2/scripts/deploy-plugin.sh"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
