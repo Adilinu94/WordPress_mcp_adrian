@@ -28,6 +28,7 @@ $novamira_adrianv2_elementor_files = array(
 	__DIR__ . '/class-import-design-system.php',
 	__DIR__ . '/class-insert-component.php',
 	__DIR__ . '/class-kit-convert-v3-to-v4.php',
+	__DIR__ . '/class-convert-page-v3-to-v4.php',
 	__DIR__ . '/class-list-class-variants.php',
 	__DIR__ . '/class-list-elementor-pages.php',
 	__DIR__ . '/class-list-templates.php',
@@ -107,6 +108,9 @@ if ( class_exists( 'Novamira\AdrianV2\Abilities\Elementor\Insert_Component' ) &&
 }
 if ( class_exists( 'Novamira\AdrianV2\Abilities\Elementor\Kit_Convert_V3_To_V4' ) && method_exists( 'Novamira\AdrianV2\Abilities\Elementor\Kit_Convert_V3_To_V4', 'register' ) ) {
 	Novamira\AdrianV2\Abilities\Elementor\Kit_Convert_V3_To_V4::register();
+}
+if ( class_exists( 'Novamira\AdrianV2\Abilities\Elementor\Convert_Page_V3_To_V4' ) && method_exists( 'Novamira\AdrianV2\Abilities\Elementor\Convert_Page_V3_To_V4', 'register' ) ) {
+	Novamira\AdrianV2\Abilities\Elementor\Convert_Page_V3_To_V4::register();
 }
 if ( class_exists( 'Novamira\AdrianV2\Abilities\Elementor\List_Class_Variants' ) && method_exists( 'Novamira\AdrianV2\Abilities\Elementor\List_Class_Variants', 'register' ) ) {
 	Novamira\AdrianV2\Abilities\Elementor\List_Class_Variants::register();
