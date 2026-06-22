@@ -22,3 +22,6 @@ require_once __DIR__ . '/../includes/helpers/class-v3-to-v4-converter.php';
 // 3. AutoFixer and Auditor classes.
 require_once __DIR__ . '/../includes/helpers/class-conversion-auto-fixer.php';
 require_once __DIR__ . '/../includes/helpers/class-conversion-auditor.php';
+
+// 4. Abilities under test.
+require_once __DIR__ . '/../includes/abilities/elementor/class-design-token-remap.php';

@@ -16,6 +16,7 @@ $novamira_adrianv2_elementor_files = array(
 	__DIR__ . '/class-batch-get-content.php',
 	__DIR__ . '/class-clone-element.php',
 	__DIR__ . '/class-apply-variable-map-to-page.php',
+	__DIR__ . '/class-design-token-remap.php',
 	__DIR__ . '/class-convert-page-v3-to-v4.php',
 	__DIR__ . '/class-convert-site-v3-to-v4.php',
 	__DIR__ . '/_deprecated/class-convert-kit-to-v4.php',
