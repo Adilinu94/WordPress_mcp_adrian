@@ -83,6 +83,7 @@ return array(
     'Novamira\\AdrianV2\\Helpers\\Elementor_Document_Saver' => $baseDir . '/includes/helpers/class-elementor-document-saver.php',
     'Novamira\\AdrianV2\\Helpers\\Elementor_Version_Resolver' => $baseDir . '/includes/helpers/class-elementor-version-resolver.php',
     'Novamira\\AdrianV2\\Helpers\\Elementor_WC_Bridge' => $baseDir . '/includes/helpers/class-elementor-wc-bridge.php',
+    'Novamira\\AdrianV2\\Helpers\\Local_Styles_Renderer' => $baseDir . '/includes/helpers/class-local-styles-renderer.php',
     'Novamira\\AdrianV2\\Helpers\\Guards' => $baseDir . '/includes/helpers/class-helpers.php',
     'Novamira\\AdrianV2\\Helpers\\Helpers' => $baseDir . '/includes/helpers/class-helpers.php',
     'Novamira\\AdrianV2\\Helpers\\PHP_Sandbox_Store' => $baseDir . '/includes/helpers/class-php-sandbox-store.php',

@@ -88,6 +88,12 @@ require_once __DIR__ . '/class-conversion-auto-fixer.php';
 //     when WPCode compiled-asset cache is unavailable.
 require_once __DIR__ . '/class-elementor-css-override.php';
 
+// 19. Local Styles Renderer — inline CSS workaround for Elementor 4.1.x bug
+//     where `elementor/atomic-widgets/styles/register` is not fired in frontend.
+//     Auto-disables on Elementor ≥ 4.2 when the native pipeline works.
+require_once __DIR__ . '/class-local-styles-renderer.php';
+\Novamira\AdrianV2\Helpers\Local_Styles_Renderer::register();
+
 // ─── REST-API: V4 Prop-Schema Endpoint (ENH-16) ──────────────────────────
 // Serves the canonical V4 property-type schema for sync-schema.js.
 // GET /wp-json/novamira/v1/prop-schema

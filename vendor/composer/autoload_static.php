@@ -299,6 +299,7 @@ class ComposerStaticInitd310f329cedd80e44d74a29e0eae8dc0
         'Novamira\\AdrianV2\\Helpers\\Elementor_Document_Saver' => __DIR__ . '/../..' . '/includes/helpers/class-elementor-document-saver.php',
         'Novamira\\AdrianV2\\Helpers\\Elementor_Version_Resolver' => __DIR__ . '/../..' . '/includes/helpers/class-elementor-version-resolver.php',
         'Novamira\\AdrianV2\\Helpers\\Elementor_WC_Bridge' => __DIR__ . '/../..' . '/includes/helpers/class-elementor-wc-bridge.php',
+        'Novamira\\AdrianV2\\Helpers\\Local_Styles_Renderer' => __DIR__ . '/../..' . '/includes/helpers/class-local-styles-renderer.php',
         'Novamira\\AdrianV2\\Helpers\\Guards' => __DIR__ . '/../..' . '/includes/helpers/class-helpers.php',
         'Novamira\\AdrianV2\\Helpers\\Helpers' => __DIR__ . '/../..' . '/includes/helpers/class-helpers.php',
         'Novamira\\AdrianV2\\Helpers\\PHP_Sandbox_Store' => __DIR__ . '/../..' . '/includes/helpers/class-php-sandbox-store.php',
