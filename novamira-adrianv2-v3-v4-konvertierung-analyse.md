@@ -22,7 +22,7 @@ Der richtige Ausbau ist daher:
 
 1. ✅ vorhandene Helper/Abilities reparieren und API-Vertraege stabilisieren,
 2. ✅ neue Ability `novamira-adrianv2/convert-page-v3-to-v4` bauen (Klasse liegt vor, muss noch im Plugin platziert werden),
-3. ❌ danach optional Bulk-Konvertierung fuer mehrere Seiten ergaenzen.
+3. ✅ Bulk-Konvertierung `convert-site-v3-to-v4` implementiert (SQL-basierte Auto-Discovery + Pagination).
 
 ## Was die Docs sagen
 

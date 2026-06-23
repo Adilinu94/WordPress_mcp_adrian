@@ -70,8 +70,8 @@ MCP Adapter (Novamira Core) ──── wp_abilities_api
   | `spacer` | `e-div-block` (padding) | ✅ |
   | `divider` | `e-divider` | ✅ |
   | `icon` | `e-svg` | ✅ |
-  | `video` | `null` (noch kein V4-Äquivalent) | ⚠️ Warning |
-  | `youtube` | — | ❌ noch kein Mapping |
+  | `video` | `e-youtube` / `e-self-hosted-video` (via type-dispatch) | ✅ Implementiert |
+  | `youtube` | → Typ-Feld in `video`-Widget, kein eigener V3-Widget-Typ | ✅ via `video` |
   | `icon-box` | — | ❌ kein V4-Äquivalent, bleibt V3 |
   | `image-box` | — | ❌ kein V4-Äquivalent, bleibt V3 |
 - **Style-Migration:** V3 `settings` → V4 `styles` mit `$$type`-Wrapping (color, font-family, font-size, font-weight, background, border, margin, padding, box-shadow)
@@ -251,8 +251,8 @@ Sowie Gutenberg-Batch-Editing (`add-pending-change`, `create-pending-batch`, `en
 | `spacer` | `e-div-block` (padding) | ✅ |
 | `divider` | `e-divider` | ✅ |
 | `icon` | `e-svg` | ✅ |
-| `video` | — | ⚠️ kein V4-Äquivalent |
-| `youtube` | — | ⚠️ kein V4-Äquivalent |
+| `video` | `e-youtube` / `e-self-hosted-video` | ✅ Implementiert |
+| `youtube` | Kein eigener V3-Typ — wird via `video.video_type` = youtube behandelt | ✅ |
 | `icon-box` | — | ⚠️ bleibt V3 |
 | `image-box` | — | ⚠️ bleibt V3 |
 
@@ -351,7 +351,7 @@ Schritt 6: Post-Conversion Audits
 | 8 | `convert-site-v3-to-v4` (Bulk) | L (2–3 Tage) | ⭐⭐ | ✅ **Erledigt** |
 | 9 | SEO-Mutation-Abilities (set-rank-math-meta) | M | ⭐⭐ | ⚠️ Teilweise via generate-meta-tags |
 | 10 | `design-token-remap` | XL | ⭐⭐ | ❌ **Offen** |
-| 11 | Widget-Mapping-Lücken (youtube, video) | S | ⭐⭐ | ⚠️ Offen |
+| 11 | Widget-Mapping-Lücken (icon-box, image-box) | S | ⭐ | ⚠️ Offen — video/youtube ✅ via if-blocks |
 | 12 | `class-v4-color-contrast-22.php` cleanup | S | ⭐ | ⚠️ Offen |
 
 ---

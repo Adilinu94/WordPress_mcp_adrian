@@ -26,7 +26,7 @@ start /B "" "C:\Users\adini\AppData\Local\Programs\codebase-memory-mcp\codebase-
 - **Library:** `yahniselsts/plugin-update-checker` (v5p7)
 - **Location:** `vendor/yahniselsts/plugin-update-checker/`
 - **GitHub Repo:** `https://github.com/Adilinu94/novamira-adrianv2`
-- **Wie es funktioniert:** Der Update-Checker läuft auf `init` (Priority 5) und prüft GitHub Releases auf neue Versionen. Sobald ein neues Release mit höherer Version als `1.1.0` erstellt wird, erscheint das Update im WordPress Dashboard unter `Plugins → Installierte Plugins`.
+- **Wie es funktioniert:** Der Update-Checker läuft auf `init` (Priority 5) und prüft GitHub Releases auf neue Versionen. Release `v1.6.0` wurde am 2026-06-23 erstellt. Das Update sollte jetzt im WordPress Dashboard erscheinen.
 
 ### Release erstellen (für Update im Dashboard)
 
@@ -34,8 +34,8 @@ start /B "" "C:\Users\adini\AppData\Local\Programs\codebase-memory-mcp\codebase-
 2. `composer install --no-dev` (optional, für saubere vendor/)
 3. Alles committen und pushen
 4. Auf GitHub ein **neues Release** erstellen mit:
-   - Tag: `v1.2.0` (oder höher)
-   - Titel: `v1.2.0`
+   - Tag: `v1.7.0` (oder höher, aktuell: v1.6.0)
+   - Titel: `v1.7.0`
    - Beschreibung: Changelog
    - **Kein ZIP hochladen nötig** — der Checker nutzt den Source-Code-Tag
 
