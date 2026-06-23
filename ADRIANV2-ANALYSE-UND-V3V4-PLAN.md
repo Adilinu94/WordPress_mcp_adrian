@@ -201,7 +201,7 @@ Sauber als `extends V4_Color_Contrast` markiert, liefert aber keine eigenen Wert
 
 Implementiert in `includes/abilities/v4-management/`. Nutzt SQL-basierte Auto-Discovery mit Pagination.
 
-### 3.8 🟡 `design-token-remap` Ability
+### 3.8 ✅ ERLEDIGT — `design-token-remap` Ability
 
 Nicht implementiert. Scannt alle Seiten nach alten GV-Referenzen und aktualisiert sie bei Rebranding.
 
@@ -350,7 +350,7 @@ Schritt 6: Post-Conversion Audits
 | 7 | `check-setup` für AIOSEO/Yoast/Rank Math/WooCommerce | M (pro Plugin) | ⭐⭐ | ⚠️ Offen |
 | 8 | `convert-site-v3-to-v4` (Bulk) | L (2–3 Tage) | ⭐⭐ | ✅ **Erledigt** |
 | 9 | SEO-Mutation-Abilities (set-rank-math-meta) | M | ⭐⭐ | ⚠️ Teilweise via generate-meta-tags |
-| 10 | `design-token-remap` | XL | ⭐⭐ | ❌ **Offen** |
+| 10 | `design-token-remap` | XL | ⭐⭐ | ✅ **Erledigt** |
 | 11 | Widget-Mapping-Lücken (icon-box, image-box) | S | ⭐ | ⚠️ Offen — video/youtube ✅ via if-blocks |
 | 12 | `class-v4-color-contrast-22.php` cleanup | S | ⭐ | ⚠️ Offen |
 
