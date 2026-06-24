@@ -41,6 +41,7 @@ require_once __DIR__ . '/../includes/helpers/class-conversion-auditor.php';
 
 // 4. Abilities under test.
 require_once __DIR__ . '/../includes/abilities/elementor/class-design-token-remap.php';
+require_once __DIR__ . '/../includes/abilities/elementor/class-elementor-edit-element.php';
 require_once __DIR__ . '/../includes/abilities/elementor-templates/class-kit-manifest.php';
 
 // 5. Kit helper classes needed for unit tests.

@@ -254,6 +254,7 @@ class ComposerStaticInitd310f329cedd80e44d74a29e0eae8dc0
         'Novamira\\AdrianV2\\Abilities\\Elementor\\Edit_Interaction' => __DIR__ . '/../..' . '/includes/abilities/elementor/class-edit-interaction.php',
         'Novamira\\AdrianV2\\Abilities\\Elementor\\Elementor_Assign_Class_To_Containers' => __DIR__ . '/../..' . '/includes/abilities/elementor/class-elementor-assign-class-to-containers.php',
         'Novamira\\AdrianV2\\Abilities\\Elementor\\Elementor_Check_Setup' => __DIR__ . '/../..' . '/includes/abilities/elementor/class-elementor-check-setup.php',
+        'Novamira\\AdrianV2\\Abilities\\Elementor\\Elementor_Edit_Element' => __DIR__ . '/../..' . '/includes/abilities/elementor/class-elementor-edit-element.php',
         'Novamira\\AdrianV2\\Abilities\\Elementor\\Elementor_Inject_Calibrated_Page' => __DIR__ . '/../..' . '/includes/abilities/elementor/class-elementor-inject-calibrated-page.php',
         'Novamira\\AdrianV2\\Abilities\\Elementor\\Execute_Build_Plan' => __DIR__ . '/../..' . '/includes/abilities/elementor/class-execute-build-plan.php',
         'Novamira\\AdrianV2\\Abilities\\Elementor\\Export_Design_System' => __DIR__ . '/../..' . '/includes/abilities/elementor/class-export-design-system.php',
