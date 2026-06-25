@@ -35,7 +35,7 @@ class Inject_Wpcode_Snippet {
 			[
 				'label'       => 'Inject WPCode Snippet',
 				'description' => 'Typed replacement for raw execute-php WPCode calls in site-clone-to-v3. Modes: detect (find WPCode CPT slug + count), create (new snippet with code, type, location, priority), activate (enable auto-insert on existing snippet), delete (hard-delete snippet). Returns snippet post ID for create mode so the caller can reference or activate it later.',
-				'category'    => 'novamira-adrianv2',
+				'category'    => 'adrianv2-wpcode',
 				'input_schema' => [
 					'type'       => 'object',
 					'required'   => [ 'mode' ],
