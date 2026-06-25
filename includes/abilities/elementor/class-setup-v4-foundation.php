@@ -16,7 +16,7 @@ class Setup_V4_Foundation
         wp_register_ability('novamira-adrianv2/setup-v4-foundation', [
             'label'       => 'Setup V4 Foundation',
             'description' => 'Run this BEFORE batch-build-page. Ensures e-flexbox-base and e-div-block-base global classes exist (padding: 0), then returns a complete context object with all variable IDs grouped by type and all global class IDs with labels. Use the returned IDs directly in batch-build-page settings. Solves the default Flexbox padding problem documented in Elementor GitHub Discussion #32154.',
-            'category'    => 'novamira-adrianv2',
+            'category'    => 'adrianv2-elementor',
             'input_schema' => [
                 'type' => 'object',
                 'properties' => [
