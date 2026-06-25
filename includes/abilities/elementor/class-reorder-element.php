@@ -15,7 +15,7 @@ class Reorder_Element {
         wp_register_ability('novamira-adrianv2/reorder-element', [
             'label'               => 'Reorder Element',
             'description'         => 'Moves an Elementor element to a new position within or between parents, including root-level moves. Prevents circular moves and clears Elementor caches.',
-            'category'            => 'novamira-adrianv2',
+            'category'            => 'adrianv2-elementor',
             'input_schema'        => [
                 'type'       => 'object',
                 'properties' => [
