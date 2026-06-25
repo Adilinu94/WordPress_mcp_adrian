@@ -420,7 +420,7 @@ class Custom_Code {
         wp_register_ability($name, [
             'label'               => __('Add Code Snippet', 'novamira-adrianv2'),
             'description'         => __('Creates a site-wide Custom Code snippet using Elementor Pro. Injects CSS or JavaScript into the <head>, after <body> open, or before </body> close on ALL pages. Use this for analytics scripts, site-wide CSS overrides, meta tags, or tracking pixels. Requires Elementor Pro and manage_options capability.', 'novamira-adrianv2'),
-            'category'            => 'novamira-adrianv2',
+            'category'            => 'adrianv2-custom-code',
             'execute_callback'    => [__CLASS__, 'execute_add_code_snippet'],
             'permission_callback' => 'novamira_permission_callback',
             'input_schema'        => [
@@ -561,7 +561,7 @@ class Custom_Code {
         wp_register_ability($name, [
             'label'               => __('List Code Snippets', 'novamira-adrianv2'),
             'description'         => __('Lists all existing Elementor Pro Custom Code snippets with their titles, locations, priorities, and statuses. Requires Elementor Pro.', 'novamira-adrianv2'),
-            'category'            => 'novamira-adrianv2',
+            'category'            => 'adrianv2-custom-code',
             'execute_callback'    => [__CLASS__, 'execute_list_code_snippets'],
             'permission_callback' => 'novamira_permission_callback',
             'input_schema'        => [
