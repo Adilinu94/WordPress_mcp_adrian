@@ -53,7 +53,7 @@ class Build_Versioning {
 
     public static function save_meta($post_id): void {
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
-        foreach (['_build_git_commit', '_build_designer', '_build_target_post', '_build_state'] as $key) {
+        foreach (['_build_git_commit', '_build_designer', '_build_target_post', '_build_state', '_build_pipeline_version'] as $key) {
             if (isset($_POST[$key])) update_post_meta($post_id, $key, sanitize_text_field($_POST[$key]));
         }
     }
@@ -69,6 +69,9 @@ class Build_Versioning {
             update_post_meta($post_id, '_build_designer', $data['designer'] ?? '');
             update_post_meta($post_id, '_build_target_post', $data['target_post'] ?? 0);
             update_post_meta($post_id, '_build_state', $data['state'] ?? 'completed');
+            if (!empty($data['pipeline_version'])) {
+                update_post_meta($post_id, '_build_pipeline_version', $data['pipeline_version']);
+            }
         }
         return is_wp_error($post_id) ? 0 : $post_id;
     }

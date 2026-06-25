@@ -197,6 +197,10 @@ class WpCode_Snippets {
 				'type'        => 'boolean',
 				'description' => __( 'Whether the snippet should be active on save. If true, WPCode runs activation checks and may auto-demote to draft on PHP errors — see `last_error`. Default: false.', 'novamira-adrianv2' ),
 			),
+			'cache_bust_token' => array(
+				'type'        => 'string',
+				'description' => __( 'When provided alongside `code`, appends ?v={token} to all CDN URLs (jsdelivr, unpkg, cdnjs) in the snippet that do not already carry a ?v= query string. Use to force browser cache invalidation after a versioned deploy. Pass the build ID or semver.', 'novamira-adrianv2' ),
+			),
 		);
 	}
 
@@ -285,7 +289,23 @@ class WpCode_Snippets {
 			$snippet->title = (string) $input['title'];
 		}
 		if ( array_key_exists( 'code', $input ) ) {
-			$snippet->code = (string) $input['code'];
+			$code = (string) $input['code'];
+			if ( ! empty( $input['cache_bust_token'] ) ) {
+				$token = preg_replace( '/[^a-zA-Z0-9._-]/', '', (string) $input['cache_bust_token'] );
+				// Append ?v={token} to CDN URLs that don't already have a ?v= param.
+				$code = preg_replace_callback(
+					'~(https://(?:cdn\\.jsdelivr\\.net|unpkg\\.com|cdnjs\\.cloudflare\\.com)/[^\\s'"<>]+)~',
+					static function ( array $m ) use ( $token ): string {
+						$url = $m[1];
+						if ( str_contains( $url, '?v=' ) || str_contains( $url, '&v=' ) ) {
+							return $url;
+						}
+						return $url . ( str_contains( $url, '?' ) ? '&' : '?' ) . 'v=' . $token;
+					},
+					$code
+				);
+			}
+			$snippet->code = $code;
 		}
 		if ( isset( $input['code_type'] ) ) {
 			$snippet->code_type = (string) $input['code_type'];
