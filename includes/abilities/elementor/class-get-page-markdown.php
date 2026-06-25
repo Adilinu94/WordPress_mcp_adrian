@@ -17,7 +17,7 @@ class Get_Page_Markdown
         wp_register_ability('novamira-adrianv2/get-page-markdown', [
             'label'               => 'Get Page Markdown',
             'description'         => 'Returns the Markdown version of any Elementor page, including YAML frontmatter. Requires Elementor 4.1+ with the markdown_rendering experiment enabled.',
-            'category'            => 'novamira-adrianv2',
+            'category'            => 'adrianv2-elementor',
             'input_schema'        => [
                 'type'       => 'object',
                 'properties' => [
