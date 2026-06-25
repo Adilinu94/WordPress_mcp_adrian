@@ -34,5 +34,3 @@ foreach ( $novamira_adrianv2_utilities_files as $novamira_adrianv2_utilities_fil
         if ( class_exists( 'Novamira\AdrianV2\Abilities\Utilities\List_Style_Keys' ) && method_exists( 'Novamira\AdrianV2\Abilities\Utilities\List_Style_Keys', 'register' ) ) {
             Novamira\AdrianV2\Abilities\Utilities\List_Style_Keys::register();
         }
-
-	\Novamira\AdrianV2\Abilities\Utilities\List_Style_Keys::register();
