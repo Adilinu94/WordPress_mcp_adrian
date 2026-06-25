@@ -16,7 +16,7 @@ class Remove_Global_Class
         wp_register_ability('novamira-adrianv2/remove-global-class', [
             'label'               => 'Remove Global Class',
             'description'         => 'Removes one class, several classes, or all classes from an Elementor atomic v4 element without rewriting the full element tree manually.',
-            'category'            => 'novamira-adrianv2',
+            'category'            => 'adrianv2-elementor',
             'input_schema'        => [
                 'type'       => 'object',
                 'properties' => [
