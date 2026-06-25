@@ -39,7 +39,7 @@ class Convert_Site_V3_To_V4 {
 			array(
 				'label'               => 'Convert Entire Site V3 to V4',
 				'description'         => 'Discovers all V3 Elementor pages and converts them to V4 Atomic in one call. Pass variable_map from kit-convert-v3-to-v4 (call kit-convert only ONCE beforehand). dry_run:true by default. Use limit to process pages in batches.',
-				'category'            => 'novamira-adrianv2',
+				'category'            => 'adrianv2-elementor',
 				'input_schema'        => array(
 					'type'       => 'object',
 					'properties' => array(
