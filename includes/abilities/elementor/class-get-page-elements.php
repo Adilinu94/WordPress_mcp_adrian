@@ -32,7 +32,7 @@ class Get_Page_Elements {
 			[
 				'label'       => 'Get Page Elements',
 				'description' => 'Read _elementor_data of a post/page and return a flat list of all elements with their IDs, types (elType + widgetType), parent IDs, nesting depth, and a lightweight settings summary (title, text, image URL, classes, custom_css presence). Useful for QA, debugging, and PixelElementResolver ground-truth ID lookup after elementor-inject-calibrated-page. Non-destructive read-only ability.',
-				'category'    => 'novamira-adrianv2',
+				'category'    => 'adrianv2-elementor',
 				'input_schema' => [
 					'type'       => 'object',
 					'required'   => [ 'post_id' ],
