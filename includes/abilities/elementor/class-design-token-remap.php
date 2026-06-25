@@ -38,7 +38,7 @@ class Design_Token_Remap {
 			array(
 				'label'               => 'Design Token Remap',
 				'description'         => 'Site-wide replacement of stale Global Variable IDs (e-gv-*) after a kit rebuild or brand update. Walks page _elementor_data and e_global_class CPT posts. dry_run:true by default.',
-				'category'            => 'novamira-adrianv2',
+				'category'            => 'adrianv2-elementor',
 				'input_schema'        => array(
 					'type'       => 'object',
 					'required'   => array( 'remap_map' ),
