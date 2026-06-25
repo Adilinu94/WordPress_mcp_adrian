@@ -16,7 +16,7 @@ class Batch_Class
         wp_register_ability('novamira-adrianv2/batch-class', [
             'label'               => 'Batch Global Class',
             'description'         => 'Applies or removes a Global Class on multiple atomic v4 elements in a single operation. Much faster than calling apply/remove for each element individually.',
-            'category'            => 'novamira-adrianv2',
+            'category'            => 'adrianv2-elementor',
             'input_schema'        => [
                 'type'       => 'object',
                 'properties' => [
