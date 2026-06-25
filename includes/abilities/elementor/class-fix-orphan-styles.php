@@ -27,7 +27,7 @@ class Fix_Orphan_Styles {
 			[
 				'label'       => 'Fix Orphan Styles',
 				'description' => 'Removes style class definitions from _elementor_data that are defined in element.styles but never referenced in settings.classes. dry_run:true (default) shows what would be removed without writing.',
-				'category'    => 'novamira-adrianv2',
+				'category'    => 'adrianv2-elementor',
 				'input_schema' => [
 					'type'       => 'object',
 					'properties' => [
