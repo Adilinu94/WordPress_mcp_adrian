@@ -32,7 +32,7 @@ class Register_Google_Font {
 			[
 				'label'       => 'Register Google Font (Fonts Plugin)',
 				'description' => 'Typed replacement for raw execute-php font-registration calls. Three modes: detect (read plugin status + current fonts), google (register a Google Font family via ogf_load_fonts theme-mod), system (register a system font via ogf_system_fonts theme-mod). Requires the Olympus Google Fonts plugin (olympus-google-fonts) or compatible Fonts Plugin.',
-				'category'    => 'novamira-adrianv2',
+				'category'    => 'adrianv2-elementor',
 				'input_schema' => [
 					'type'       => 'object',
 					'required'   => [ 'mode' ],
