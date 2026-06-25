@@ -139,3 +139,32 @@ require_once __DIR__ . '/../includes/abilities/elementor/class-list-v3-pages.php
 require_once __DIR__ . '/../includes/abilities/elementor/class-fix-orphan-styles.php';
 require_once __DIR__ . '/../includes/abilities/clonerlabs/class-clonerlabs-style-minifier.php';
 require_once __DIR__ . '/../includes/abilities/elementor/class-get-page-elements.php';
+
+if ( ! function_exists( 'post_type_exists' ) ) {
+	function post_type_exists( string $post_type ): bool { // phpcs:ignore
+		return false;
+	}
+}
+if ( ! function_exists( 'wp_count_posts' ) ) {
+	function wp_count_posts( string $type = 'post' ): object { // phpcs:ignore
+		return (object) [ 'publish' => 0, 'draft' => 0 ];
+	}
+}
+if ( ! function_exists( 'wp_insert_post' ) ) {
+	function wp_insert_post( array $postarr, bool $wp_error = false ): int|\WP_Error { // phpcs:ignore
+		static $n = 9000;
+		return ++$n;
+	}
+}
+if ( ! function_exists( 'update_post_meta' ) ) {
+	function update_post_meta( int $post_id, string $meta_key, mixed $meta_value, mixed $prev = '' ): bool { // phpcs:ignore
+		$GLOBALS['_novamira_test_options'][ "postmeta_{$post_id}_{$meta_key}" ] = $meta_value;
+		return true;
+	}
+}
+if ( ! function_exists( 'get_post_meta' ) ) {
+	function get_post_meta( int $post_id, string $key = '', bool $single = false ): mixed { // phpcs:ignore
+		return $GLOBALS['_novamira_test_options'][ "postmeta_{$post_id}_{$key}" ] ?? ( $single ? '' : [] );
+	}
+}
+

@@ -21,6 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 $novamira_adrianv2_wpcode_files = [
 	__DIR__ . '/class-wpcode-snippets.php',
 	__DIR__ . '/class-wpcode-check-setup.php',
+	__DIR__ . '/class-inject-wpcode-snippet.php',
 ];
 
 foreach ( $novamira_adrianv2_wpcode_files as $novamira_adrianv2_wpcode_file ) {
@@ -39,4 +40,7 @@ if ( class_exists( 'Novamira\\AdrianV2\\Abilities\\WpCode\\WpCode_Snippets' ) &&
 // inactive if the WPCode class / constant is not present).
 if ( class_exists( 'Novamira\\AdrianV2\\Abilities\\WpCode\\WpCode_Check_Setup' ) && method_exists( 'Novamira\\AdrianV2\\Abilities\\WpCode\\WpCode_Check_Setup', 'register' ) ) {
 	Novamira\AdrianV2\Abilities\WpCode\WpCode_Check_Setup::register();
+}
+if ( class_exists( 'Novamira\AdrianV2\Abilities\WpCode\Inject_Wpcode_Snippet' ) && method_exists( 'Novamira\AdrianV2\Abilities\WpCode\Inject_Wpcode_Snippet', 'register' ) ) {
+	Novamira\AdrianV2\Abilities\WpCode\Inject_Wpcode_Snippet::register();
 }
