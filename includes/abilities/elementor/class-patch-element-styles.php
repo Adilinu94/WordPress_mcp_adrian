@@ -17,7 +17,7 @@ class Patch_Element_Styles
         wp_register_ability('novamira-adrianv2/patch-element-styles', [
             'label'       => 'Patch Element Styles',
             'description' => 'Surgically patches styles, settings, or custom_css of specific Elementor elements on an existing page by element ID. Use this instead of rebuilding the full page when fixing individual element appearance. Supports updating style props per breakpoint/state, adding custom_css, changing widget settings (title, svg, classes), and adding new style classes. Much faster than batch-build-page for incremental fixes. Always clears Elementor CSS cache after patching.',
-            'category'    => 'novamira-adrianv2',
+            'category'    => 'adrianv2-elementor',
             'input_schema' => [
                 'type' => 'object',
                 'properties' => [
