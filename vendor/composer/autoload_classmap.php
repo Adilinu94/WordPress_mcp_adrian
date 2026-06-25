@@ -63,6 +63,7 @@ return array(
     'Novamira\\AdrianV2\\Abilities\\Media\\Edit_Media' => $baseDir . '/includes/abilities/media/class-edit-media.php',
     'Novamira\\AdrianV2\\Abilities\\Media\\Featured_Image' => $baseDir . '/includes/abilities/media/class-featured-image.php',
     'Novamira\\AdrianV2\\Abilities\\Media\\List_Media' => $baseDir . '/includes/abilities/media/class-list-media.php',
+    'Novamira\\AdrianV2\\Abilities\\Media\\Upload_Asset' => $baseDir . '/includes/abilities/media/class-upload-asset.php',
     'Novamira\\AdrianV2\\Abilities\\Media\\Media_Upload' => $baseDir . '/includes/abilities/media/class-media-upload.php',
     'Novamira\\AdrianV2\\Abilities\\Media\\Media_Usage' => $baseDir . '/includes/abilities/media/class-media-usage.php',
     'Novamira\\AdrianV2\\Abilities\\PhpSandbox\\PHP_Snippets' => $baseDir . '/includes/abilities/php-sandbox/class-php-snippets.php',

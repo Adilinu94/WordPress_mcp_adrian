@@ -12,6 +12,7 @@ $novamira_adrianv2_media_files = [
     __DIR__ . '/class-list-media.php',
     __DIR__ . '/class-media-upload.php',
     __DIR__ . '/class-media-usage.php',
+    __DIR__ . '/class-upload-asset.php',
 ];
 
 foreach ( $novamira_adrianv2_media_files as $novamira_adrianv2_media_file ) {
@@ -41,4 +42,7 @@ foreach ( $novamira_adrianv2_media_files as $novamira_adrianv2_media_file ) {
         }
         if ( class_exists( 'Novamira\AdrianV2\Abilities\Media\Media_Usage' ) && method_exists( 'Novamira\AdrianV2\Abilities\Media\Media_Usage', 'register' ) ) {
             Novamira\AdrianV2\Abilities\Media\Media_Usage::register();
+        }
+        if ( class_exists( 'Novamira\AdrianV2\Abilities\Media\Upload_Asset' ) && method_exists( 'Novamira\AdrianV2\Abilities\Media\Upload_Asset', 'register' ) ) {
+            Novamira\AdrianV2\Abilities\Media\Upload_Asset::register();
         }
