@@ -35,7 +35,7 @@ class Elementor_Edit_Element {
 			[
 				'label'       => 'Edit Element Settings',
 				'description' => 'Deep-merge an arbitrary settings object into a single Elementor element (widget, section, column, or container) identified by element ID, on any V3 or V4 page. Clears Elementor CSS cache after writing. Use this for targeted QA fixes: update _background_color, padding, margin, image, width, height, custom_css, or any other Elementor setting key without rebuilding the page. Accepts both V3 and V4 pages.',
-				'category'    => 'novamira-adrianv2',
+				'category'    => 'adrianv2-elementor',
 				'input_schema' => [
 					'type'       => 'object',
 					'required'   => [ 'post_id', 'element_id', 'settings' ],
