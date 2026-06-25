@@ -16,7 +16,7 @@ class List_Class_Variants
         wp_register_ability('novamira-adrianv2/list-class-variants', [
             'label'               => 'List Class Variants',
             'description'         => 'List all variants for a specific Global Class, showing breakpoints, states, and CSS properties. Also supports listing all classes with their variant counts. Use this to inspect what responsive breakpoints a class has before editing.',
-            'category'            => 'novamira-adrianv2',
+            'category'            => 'adrianv2-elementor',
             'input_schema'        => [
                 'type'       => 'object',
                 'properties' => [
