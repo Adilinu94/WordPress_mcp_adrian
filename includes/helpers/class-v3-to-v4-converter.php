@@ -435,6 +435,41 @@ final class V3_To_V4_Converter {
 			);
 		}
 
+		// Min height (sections, columns, containers).
+		if ( ! empty( $v3['min_height'] ) && is_array( $v3['min_height'] ) && isset( $v3['min_height']['size'] ) ) {
+			$settings['min_height'] = array(
+				'size' => (float) $v3['min_height']['size'],
+				'unit' => $v3['min_height']['unit'] ?? 'px',
+			);
+		}
+
+		// CSS classes (V3 stores as _css_classes or css_classes).
+		if ( ! empty( $v3['_css_classes'] ) && is_string( $v3['_css_classes'] ) ) {
+			$settings['css_classes'] = $v3['_css_classes'];
+		} elseif ( ! empty( $v3['css_classes'] ) && is_string( $v3['css_classes'] ) ) {
+			$settings['css_classes'] = $v3['css_classes'];
+		}
+
+		// HTML element ID / anchor.
+		if ( ! empty( $v3['_element_id'] ) && is_string( $v3['_element_id'] ) ) {
+			$settings['_element_id'] = $v3['_element_id'];
+		}
+
+		// Content width (boxed/full) — sections.
+		if ( ! empty( $v3['content_width'] ) && is_string( $v3['content_width'] ) ) {
+			$settings['v3_content_width'] = $v3['content_width'];
+		}
+
+		// Element width type (FULL / INNER / CUSTOM_WIDTH).
+		if ( ! empty( $v3['_element_width'] ) && is_string( $v3['_element_width'] ) ) {
+			$settings['_element_width'] = $v3['_element_width'];
+		}
+
+		// Custom width value (when _element_width is CUSTOM_WIDTH).
+		if ( ! empty( $v3['_element_custom_width'] ) && is_array( $v3['_element_custom_width'] ) && isset( $v3['_element_custom_width']['size'] ) ) {
+			$settings['_element_custom_width'] = $v3['_element_custom_width'];
+		}
+
 		return $settings;
 	}
 
@@ -653,6 +688,10 @@ final class V3_To_V4_Converter {
 				if ( ! empty( $v3_settings['column_gap'] ) && is_array( $v3_settings['column_gap'] ) && isset( $v3_settings['column_gap']['size'] ) ) {
 					$props['column-gap'] = self::v4_size( (float) $v3_settings['column_gap']['size'], $v3_settings['column_gap']['unit'] ?? 'px' );
 				}
+				// Min height (container-level).
+				if ( ! empty( $v3_settings['min_height'] ) && is_array( $v3_settings['min_height'] ) && isset( $v3_settings['min_height']['size'] ) ) {
+					$props['min-height'] = self::v4_size( (float) $v3_settings['min_height']['size'], $v3_settings['min_height']['unit'] ?? 'px' );
+				}
 				break;
 		}
 
@@ -680,6 +719,18 @@ final class V3_To_V4_Converter {
 		if ( ! empty( $v3_settings['background_color'] ) && is_string( $v3_settings['background_color'] ) ) {
 			$props['background-color'] = self::v4_color( self::resolve_color_var( $v3_settings['background_color'], $ci ) );
 		}
+		if ( ! empty( $v3_settings['background_image'] ) && is_array( $v3_settings['background_image'] ) && ! empty( $v3_settings['background_image']['url'] ) ) {
+			$props['background-image'] = self::v4_string( 'url(' . esc_url( $v3_settings['background_image']['url'] ) . ')' );
+		}
+		if ( ! empty( $v3_settings['background_position'] ) && is_string( $v3_settings['background_position'] ) ) {
+			$props['background-position'] = self::v4_string( $v3_settings['background_position'] );
+		}
+		if ( ! empty( $v3_settings['background_repeat'] ) && is_string( $v3_settings['background_repeat'] ) ) {
+			$props['background-repeat'] = self::v4_string( $v3_settings['background_repeat'] );
+		}
+		if ( ! empty( $v3_settings['background_size'] ) && is_string( $v3_settings['background_size'] ) ) {
+			$props['background-size'] = self::v4_string( $v3_settings['background_size'] );
+		}
 
 		// ── Border (generic, for containers) ──
 		if ( ! empty( $v3_settings['border_border'] ) ) {
@@ -700,7 +751,16 @@ final class V3_To_V4_Converter {
 		}
 		if ( ! empty( $v3_settings['border_radius'] ) && is_array( $v3_settings['border_radius'] ) ) {
 			$br = $v3_settings['border_radius'];
-			$props['border-radius'] = self::v4_size( (float) ( $br['top'] ?? 0 ), $br['unit'] ?? 'px' );
+			$unit = $br['unit'] ?? 'px';
+			$top = (float) ( $br['top'] ?? 0 );
+			$right = (float) ( $br['right'] ?? 0 );
+			$bottom = (float) ( $br['bottom'] ?? 0 );
+			$left = (float) ( $br['left'] ?? 0 );
+			if ( $top === $right && $right === $bottom && $bottom === $left ) {
+				$props['border-radius'] = self::v4_size( $top, $unit );
+			} else {
+				$props['border-radius'] = self::v4_string( "{$top}{$unit} {$right}{$unit} {$bottom}{$unit} {$left}{$unit}" );
+			}
 		}
 
 		// ── Box shadow ──
@@ -804,6 +864,41 @@ final class V3_To_V4_Converter {
 			$value = $v3_settings[ $width_key ] ?? null;
 			if ( is_array( $value ) && isset( $value['size'] ) && ! empty( $value['size'] ) ) {
 				$overrides[ $bp ]['width'] = self::v4_size( (float) $value['size'], $value['unit'] ?? 'px' );
+			}
+		}
+
+		// ── Container layout overrides (flex-direction, justify, align) ──
+		$container_layout_keys = array(
+			'flex_direction'  => 'flex-direction',
+			'justify_content' => 'justify-content',
+			'align_items'     => 'align-items',
+			'align_content'   => 'align-content',
+			'flex_wrap'       => 'flex-wrap',
+		);
+		foreach ( $container_layout_keys as $v3_key => $css_prop ) {
+			foreach ( array( 'tablet', 'mobile' ) as $bp ) {
+				$override_key = $v3_key . '_' . $bp;
+				if ( ! empty( $v3_settings[ $override_key ] ) && is_string( $v3_settings[ $override_key ] ) ) {
+					$overrides[ $bp ][ $css_prop ] = self::v4_string( $v3_settings[ $override_key ] );
+				}
+			}
+		}
+
+		// ── Container min_height overrides ──
+		foreach ( array( 'tablet', 'mobile' ) as $bp ) {
+			$mh_key = 'min_height_' . $bp;
+			$value = $v3_settings[ $mh_key ] ?? null;
+			if ( is_array( $value ) && isset( $value['size'] ) && ! empty( $value['size'] ) ) {
+				$overrides[ $bp ]['min-height'] = self::v4_size( (float) $value['size'], $value['unit'] ?? 'px' );
+			}
+		}
+
+		// ── Container gap overrides ──
+		foreach ( array( 'tablet', 'mobile' ) as $bp ) {
+			$gap_key = 'gap_' . $bp;
+			$value = $v3_settings[ $gap_key ] ?? null;
+			if ( is_array( $value ) && isset( $value['size'] ) && ! empty( $value['size'] ) ) {
+				$overrides[ $bp ]['gap'] = self::v4_size( (float) $value['size'], $value['unit'] ?? 'px' );
 			}
 		}
 
