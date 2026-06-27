@@ -8,7 +8,7 @@ declare(strict_types=1);
  * Plugin Name:       Novamira AdrianV2
  * Plugin URI:        https://www.novamira.ai
  * Description:       Consolidated AI abilities for Novamira. Combines the original Adrians toolkit and the Adrians Extra add-on into a single, well-organized plugin with per-group bootstrapping, proper error isolation, and clean ability-category registration. Requires the Novamira Base plugin and Elementor.
- * Version:           1.10.0
+ * Version:           1.10.1
  * Requires at least: 6.9
  * Requires PHP:      8.0
  * Requires Plugins: novamira, elementor
@@ -41,7 +41,7 @@ if (!defined('ABSPATH')) {
 // Constants
 // -----------------------------------------------------------------------------
 
-define(constant_name: 'NOVAMIRA_ADRIANV2_VERSION', value: '1.10.0');
+define(constant_name: 'NOVAMIRA_ADRIANV2_VERSION', value: '1.10.1');
 define(constant_name: 'NOVAMIRA_ADRIANV2_FILE', value: __FILE__);
 define(constant_name: 'NOVAMIRA_ADRIANV2_DIR', value: plugin_dir_path(__FILE__));
 define(constant_name: 'NOVAMIRA_ADRIANV2_MIN_PHP_VERSION', value: '8.0');
