@@ -15,9 +15,10 @@ $novamira_adrianv2_utilities_files = [
 foreach ( $novamira_adrianv2_utilities_files as $novamira_adrianv2_utilities_file ) {
     if ( file_exists( $novamira_adrianv2_utilities_file ) ) {
         require_once $novamira_adrianv2_utilities_file;
-	require_once __DIR__ . '/class-list-style-keys.php';
     }
 }
+
+require_once __DIR__ . '/class-list-style-keys.php';
 
 // Auto-register all abilities in this sub-domain
         if ( class_exists( 'Novamira\AdrianV2\Abilities\Utilities\Hello_World' ) && method_exists( 'Novamira\AdrianV2\Abilities\Utilities\Hello_World', 'register' ) ) {

@@ -176,8 +176,7 @@ if ( class_exists( 'Novamira\AdrianV2\Abilities\Elementor\Register_Google_Font' 
 if ( class_exists( 'Novamira\AdrianV2\Abilities\Elementor\Upgrade_Page_To_V4' ) && method_exists( 'Novamira\AdrianV2\Abilities\Elementor\Upgrade_Page_To_V4', 'register' ) ) {
 	Novamira\AdrianV2\Abilities\Elementor\Upgrade_Page_To_V4::register();
 }
-require_once __DIR__ . '/class-v4-preflight.php';
-	require_once __DIR__ . '/class-ensure-atomic-experiments.php';
+require_once __DIR__ . '/class-ensure-atomic-experiments.php';
 	require_once __DIR__ . '/class-validate-v4-tree.php';
 if ( class_exists( 'Novamira\AdrianV2\Abilities\Elementor\Ensure_Atomic_Experiments' ) && method_exists( 'Novamira\AdrianV2\Abilities\Elementor\Ensure_Atomic_Experiments', 'register' ) ) {
 	Novamira\AdrianV2\Abilities\Elementor\Ensure_Atomic_Experiments::register();
