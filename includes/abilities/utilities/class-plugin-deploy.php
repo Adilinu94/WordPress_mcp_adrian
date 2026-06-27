@@ -59,7 +59,7 @@ class Plugin_Deploy
             },
             'meta'                => [
                 'show_in_rest' => true,
-                'mcp'          => ['public' => false],
+                'mcp'          => ['public' => true],
                 'annotations'  => [
                     'readonly'    => false,
                     'destructive' => true,
