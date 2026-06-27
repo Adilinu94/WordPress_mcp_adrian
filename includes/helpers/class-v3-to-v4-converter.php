@@ -950,6 +950,15 @@ final class V3_To_V4_Converter {
 			}
 		}
 
+		// ── Column _inline_size overrides (responsive column width) ──
+		foreach ( array( 'tablet', 'mobile' ) as $bp ) {
+			$is_key = '_inline_size_' . $bp;
+			$value = $v3_settings[ $is_key ] ?? null;
+			if ( is_numeric( $value ) ) {
+				$overrides[ $bp ]['width'] = self::v4_size( (float) $value, '%' );
+			}
+		}
+
 		// ── Container layout overrides (flex-direction, justify, align) ──
 		$container_layout_keys = array(
 			'flex_direction'  => 'flex-direction',
@@ -1278,9 +1287,10 @@ final class V3_To_V4_Converter {
 		// Applied when the container represents a column.
 		if ( ! empty( $v3_settings['content_position'] ) && is_string( $v3_settings['content_position'] ) ) {
 			$cp_map = array(
-				'top'    => 'flex-start',
-				'middle' => 'center',
-				'bottom' => 'flex-end',
+				'top'           => 'flex-start',
+				'middle'        => 'center',
+				'bottom'        => 'flex-end',
+				'space-between' => 'space-between',
 			);
 			if ( isset( $v3_settings['_is_column'] ) && $v3_settings['_is_column'] ) {
 				$cp = $v3_settings['content_position'];
