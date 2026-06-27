@@ -44,3 +44,16 @@ start /B "" "C:\Users\adini\AppData\Local\Programs\codebase-memory-mcp\codebase-
 - Nach jeder Antwort 3 kurze Followup-Fragen anhängen
 - Beim Context >= 300k den User an /compact erinnern
 - Nach relevanten Änderungen an den Re-Index erinnern
+
+---
+
+## Repo-Umbenennung (2026-06)
+
+GitHub hat `novamira-adrianv2` in `WordPress_mcp_adrian` umbenannt.
+- **Alte URL:** `https://github.com/Adilinu94/novamira-adrianv2`
+- **Neue URL:** `https://github.com/Adilinu94/WordPress_mcp_adrian`
+- GitHub leitet die alte URL weiter — Push/Clone funktionieren noch.
+- Lokal im Clone-Verzeichnis remote update:
+  ```bash
+  git remote set-url origin https://github.com/Adilinu94/WordPress_mcp_adrian.git
+  ```
