@@ -108,12 +108,21 @@ final class V3_To_V4_Converter {
 		$element_id = self::gen_id();
 		$settings   = self::make_container_settings( $v3_settings, $ci, $element_id );
 
+		// Section HTML tag (html_tag).
+		if ( ! empty( $v3_settings['html_tag'] ) && is_string( $v3_settings['html_tag'] ) ) {
+			$settings['tag'] = $v3_settings['html_tag'];
+		}
+
+		// Column gap for sections.
+		$section_gap = self::extract_section_gap( $v3_settings );
+
 		// Extract container-level styles into a local style class.
 		$style_result = self::extract_and_apply_container_styles(
 			$v3_settings,
 			$element_id,
 			$ci,
-			$settings
+			$settings,
+			$section_gap
 		);
 
 		return array(
@@ -136,6 +145,9 @@ final class V3_To_V4_Converter {
 		self::resolve_globals( $v3_settings );
 		$element_id = self::gen_id();
 		$settings   = self::make_container_settings( $v3_settings, $ci, $element_id );
+
+		// Mark as column for column-specific style extraction.
+		$v3_settings['_is_column'] = true;
 
 		// Extract container-level styles into a local style class.
 		$style_result = self::extract_and_apply_container_styles(
@@ -390,6 +402,16 @@ final class V3_To_V4_Converter {
 				$new_settings['image'] = V4_Props::image( 0, (string) $img['url'] );
 			}
 			if ( ! empty( $s['image_size'] ) ) { $new_settings['size'] = (string) $s['image_size']; }
+			if ( ! empty( $img['alt'] ) && is_string( $img['alt'] ) ) { $new_settings['alt'] = $img['alt']; }
+			if ( ! empty( $s['caption'] ) && is_string( $s['caption'] ) ) { $new_settings['caption'] = $s['caption']; }
+			if ( ! empty( $s['link'] ) && is_array( $s['link'] ) ) { $new_settings['link'] = $s['link']; }
+			// Image link target from url key.
+			if ( ! empty( $new_settings['link'] ) && ! isset( $new_settings['link']['url'] ) ) {
+				$link_str = $new_settings['link']['url'] ?? '';
+				if ( empty( $link_str ) && isset( $s['link_image']['url'] ) ) {
+					$new_settings['link'] = $s['link_image'];
+				}
+			}
 		} elseif ( 'divider' === $wt ) {
 			if ( ! empty( $s['style'] ) ) { $new_settings['style'] = $s['style']; }
 			if ( ! empty( $s['weight'] ) ) { $new_settings['weight'] = $s['weight']; }
@@ -1024,11 +1046,62 @@ final class V3_To_V4_Converter {
 	 * @param array  $existing    Already-built settings (from make_container_settings).
 	 * @return array {settings: [...], styles: [...]}
 	 */
+	/**
+	 * Extract V3 section gap and map to V4 column_gap + row_gap.
+	 *
+	 * V3 sections store column gap as a simple string (e.g. "default", "no", "narrow",
+	 * "extended", "wide", "wider") plus a custom gap value. Defaults: no=0, narrow=5,
+	 * extended=15, wide=20, wider=30, default=10.
+	 *
+	 * @param array $v3_settings V3 section settings.
+	 * @return array{gap: array|null, column_gap: array|null, row_gap: array|null}
+	 */
+	private static function extract_section_gap( array $v3_settings ): array {
+		$result = array( 'gap' => null, 'column_gap' => null, 'row_gap' => null );
+		if ( empty( $v3_settings['gap'] ) ) {
+			return $result;
+		}
+		$gap = $v3_settings['gap'];
+		if ( is_string( $gap ) ) {
+			$gap_map = array(
+				'no'       => 0,
+				'narrow'   => 5,
+				'extended' => 15,
+				'wide'     => 20,
+				'wider'    => 30,
+				'default'  => 10,
+			);
+			$px = $gap_map[ $gap ] ?? 10;
+			$result['column_gap'] = self::v4_size( (float) $px, 'px' );
+		} elseif ( is_array( $gap ) && isset( $gap['size'] ) ) {
+			$result['column_gap'] = self::v4_size( (float) $gap['size'], $gap['unit'] ?? 'px' );
+		}
+
+		// Custom column_gap override.
+		if ( ! empty( $v3_settings['column_gap'] ) ) {
+			$cg = $v3_settings['column_gap'];
+			if ( is_array( $cg ) && isset( $cg['size'] ) ) {
+				$result['column_gap'] = self::v4_size( (float) $cg['size'], $cg['unit'] ?? 'px' );
+			}
+		}
+
+		// Row gap.
+		if ( ! empty( $v3_settings['row_gap'] ) ) {
+			$rg = $v3_settings['row_gap'];
+			if ( is_array( $rg ) && isset( $rg['size'] ) ) {
+				$result['row_gap'] = self::v4_size( (float) $rg['size'], $rg['unit'] ?? 'px' );
+			}
+		}
+
+		return $result;
+	}
+
 	private static function extract_and_apply_container_styles(
 		array $v3_settings,
 		string $element_id,
 		array $ci,
-		array $existing
+		array $existing,
+		array $section_gap = array()
 	): array {
 		// Extract desktop-level container style props.
 		$desktop_props = self::extract_style_props_for_widget( $v3_settings, 'container', $ci );
@@ -1042,6 +1115,69 @@ final class V3_To_V4_Converter {
 		}
 		if ( ! empty( $v3_settings['content_width'] ) && is_array( $v3_settings['content_width'] ) && isset( $v3_settings['content_width']['size'] ) ) {
 			$desktop_props['width'] = self::v4_size( (float) $v3_settings['content_width']['size'], $v3_settings['content_width']['unit'] ?? 'px' );
+		}
+
+		// V3 section vertical_align (column alignment within section) → align-items.
+		static $va_map = array(
+			'top'    => 'flex-start',
+			'middle' => 'center',
+			'bottom' => 'flex-end',
+		);
+		if ( ! empty( $v3_settings['vertical_align'] ) && isset( $va_map[ $v3_settings['vertical_align'] ] ) ) {
+			$desktop_props['align-items'] = self::v4_string( $va_map[ $v3_settings['vertical_align'] ] );
+		}
+
+		// V3 column vertical_align (widget alignment within column) → align-items on e-div-block.
+		// Applied when the container represents a column.
+		if ( ! empty( $v3_settings['content_position'] ) && is_string( $v3_settings['content_position'] ) ) {
+			$cp_map = array(
+				'top'    => 'flex-start',
+				'middle' => 'center',
+				'bottom' => 'flex-end',
+			);
+			if ( isset( $v3_settings['_is_column'] ) && $v3_settings['_is_column'] ) {
+				$cp = $v3_settings['content_position'];
+				if ( isset( $cp_map[ $cp ] ) ) {
+					$desktop_props['justify-content'] = self::v4_string( $cp_map[ $cp ] );
+				}
+			}
+		}
+
+		// V3 section content_width = 'boxed' → max-width + auto margins.
+		$cw = $v3_settings['content_width'] ?? '';
+		if ( 'boxed' === $cw ) {
+			$desktop_props['max-width'] = self::v4_size( 1140, 'px' );
+			$desktop_props['margin-inline'] = self::v4_string( 'auto' );
+		}
+
+		// V3 z_index → z-index CSS.
+		if ( isset( $v3_settings['z_index'] ) && '' !== $v3_settings['z_index'] ) {
+			$z = (int) $v3_settings['z_index'];
+			if ( $z !== 0 ) {
+				$desktop_props['z-index'] = self::v4_string( (string) $z );
+			}
+		}
+
+		// V3 _position → position CSS.
+		if ( ! empty( $v3_settings['_position'] ) && is_string( $v3_settings['_position'] ) ) {
+			$desktop_props['position'] = self::v4_string( $v3_settings['_position'] );
+		}
+
+		// V3 column _inline_size → width for e-div-block.
+		if ( ! empty( $v3_settings['_inline_size'] ) && is_array( $v3_settings['_inline_size'] ) && isset( $v3_settings['_inline_size']['size'] ) ) {
+			$desktop_props['width'] = self::v4_size( (float) $v3_settings['_inline_size']['size'], $v3_settings['_inline_size']['unit'] ?? '%' );
+		} elseif ( ! empty( $v3_settings['_inline_size'] ) && is_numeric( $v3_settings['_inline_size'] ) ) {
+			$desktop_props['width'] = self::v4_size( (float) $v3_settings['_inline_size'], '%' );
+		}
+
+		// Apply section gap (column_gap / row_gap) from extract_section_gap.
+		if ( ! empty( $section_gap ) ) {
+			if ( null !== ( $section_gap['column_gap'] ?? null ) ) {
+				$existing['column_gap'] = $section_gap['column_gap'];
+			}
+			if ( null !== ( $section_gap['row_gap'] ?? null ) ) {
+				$existing['row_gap'] = $section_gap['row_gap'];
+			}
 		}
 
 		// Build and apply styles.
