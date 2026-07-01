@@ -2,7 +2,7 @@
 
 > WordPress Plugin — MCP-Abilities für Elementor V4, Media, Audit, SEO & mehr
 
-**Version:** 1.0.0  
+**Version:** 1.10.1  
 **Requires:** PHP 8.0+, WordPress 6.4+, [Novamira](https://novamira.dev), Elementor 4.x  
 **License:** GPL-2.0-or-later
 
@@ -94,7 +94,7 @@ Detaillierter Status — Plugin-Info, Schema-Übersicht, Test-Counts.
 
 ```json
 {
-  "plugin": { "name": "novamira-adrianv2", "version": "1.0.0" },
+  "plugin": { "name": "novamira-adrianv2", "version": "1.10.1" },
   "schema": { "version": "1.0.0", "types": 12, "props": 13 },
   "tests": { "phpunit": 52, "pipeline": 114, "e2e": 18, "total": 184 },
   "php": "8.2.23",
@@ -108,7 +108,7 @@ Versions-Info — Plugin, PHP, WordPress.
 
 ```json
 {
-  "plugin": "1.0.0",
+  "plugin": "1.10.1",
   "php": "8.2.23",
   "wp": "6.9"
 }
