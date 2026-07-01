@@ -14,3 +14,7 @@ local-xdebuginfo.php
 
 # PHP tools (generated locally, not needed in dist)
 .psalm-cache/
+
+# Composer tool + deps (nie committen, via 'composer install' erzeugen)
+composer.phar
+vendor/
