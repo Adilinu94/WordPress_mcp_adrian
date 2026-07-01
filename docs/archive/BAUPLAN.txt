@@ -1,0 +1,74 @@
+================================================================================
+BAUPLAN — Novamira AdrianV2 v1.1.0
+================================================================================
+
+Phase 1: ✅ Skills & Server-Instructions (abgeschlossen)
+  - 8 neue SKILL.md Dateien
+  - Idempotenter Skill-Installer
+  - Server-Instructions für discover-abilities
+
+Phase 2: ✅ Abilities Härten (abgeschlossen)
+  - V4-Guards in 12 execute-Methoden
+  - Per-Page V3/V4-Checks
+  - 3 neue Abilities: sync-schema, self-audit, rollback-build
+
+Phase 3: ✅ Quality Gates + Tests (abgeschlossen)
+  - 37 neue PHPUnit-Tests (12+6+4+6+9)
+  - Mock-Infrastruktur ausgebaut
+
+Phase 4: 📋 Offene Verbesserungen
+================================================================================
+
+4.1 — check-setup: Experiments-Status (#7/#12)
+  Datei: novamira-pro/includes/abilities/elementor/check-setup.php
+  Status: ✅ Implementiert (experiments-Feld im atomic-Block)
+  Beschreibung:
+    - Neues `experiments`-Feld im atomic-Block der check-setup-Response
+    - Prüft 4 Pflicht-Experiments: e_atomic_elements, e_opt_in_v4,
+      e_variables, e_classes
+    - Mögliche Werte: "active", "inactive", "default", "unknown"
+    - Nutzt el_feature_active() aus runtime.php
+    - Ohne alle 4 aktiv rendert kein V4-Widget — auch wenn
+      runtime_available: true meldet
+
+4.2 — batch-create-variables: Early Helpers-Guard (#8/#10)
+  Datei: includes/abilities/variables/class-batch-create-variables.php
+  Status: ✅ Implementiert
+  Beschreibung:
+    - class_exists('Novamira\AdrianV2\Helpers') Early-Gate am Anfang
+      von execute()
+    - Gibt sauberen WP_Error "helpers_not_loaded" statt PHP-Fatal
+    - Agent kann auf sequenziellen Fallback switchen
+
+4.3 — patch-element-styles: Batch-Modus (#9/#11)
+  Datei: includes/abilities/elementor/class-patch-element-styles.php
+  Status: ✅ Bereits vorhanden (keine Code-Änderung nötig)
+  Beschreibung:
+    - execute() liest _elementor_data EINMAL
+    - Iteriert über ALLE patches im Array
+    - Schreibt EINMAL zurück + invalidate_cache EINMAL
+    - Input-Schema: patches = Array<{element_id, ...}>
+    - Kein separater batch-patch nötig — die existierende Ability
+      verarbeitet beliebig viele Elemente pro Call
+
+4.4 — getProjectStyles: Neue MCP-Ability (#9)
+  Datei: includes/abilities/utilities/class-get-project-styles.php
+  Status: ✅ Implementiert
+  Beschreibung:
+    - Parst getProjectXml-Ausgabe des Unframer-MCP
+    - Extrahiert Color-Tags → {hex, rgb, r, g, b}
+    - Extrahiert TextStyle-Tags → {fontSize, fontWeight, fontFamily,
+      lineHeight, letterSpacing}
+    - Format: "full" (alle Keys) oder "compact" (nur hex + fontSize/fontWeight)
+    - Robuster XML-Parser via regex (Attribute-Extraktion, Markdown-Fence-
+      Stripping, libxml-Fehlerunterdrückung)
+    - Registriert in utilities/bootstrap.php unter
+      novamira-adrianv2/get-project-styles
+
+================================================================================
+Phasen-Übersicht
+================================================================================
+Phase 1: Skills & Server-Instructions   ✅ Fertig
+Phase 2: Abilities Härten              ✅ Fertig
+Phase 3: Quality Gates + Tests         ✅ Fertig
+Phase 4: Offene Verbesserungen         ✅ Fertig (alle 4 implementiert)
