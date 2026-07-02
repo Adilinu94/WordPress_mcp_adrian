@@ -45,7 +45,7 @@ Dieser Plan verwirft die generischen Teile komplett, übernimmt die validen Kern
   - Idempotency Self-Test → **54/54**
   - Batch-Scheduler Self-Test → **30/30**
   - **Summe: 270 echte, laufende Tests, alle grün.** Das ist das mit Abstand am saubersten dokumentierte der drei Repos.
-- **Strangler-Fig-Restrukturierung** (`scripts/` → `src/`) laut `FORTSETZUNG.md`: Schritte 1–12 ✅, Schritt 13 (weitere Module wie `mcp-bridge.ts`, `unframer-bridge.ts` nach `src/`) und Schritt 14 (`wizard.js` → `src/cli/`) offen.
+- **Strangler-Fig-Restrukturierung** (`scripts/` → `src/`): **komplett abgeschlossen**, inkl. Schritt 13 (`mcp-bridge.ts` → `src/builder/`, `unframer-bridge.ts` → `src/extractor/`) und Schritt 14 (`wizard.js` → `wizard.ts`) — bereits Teil des Commits `132a302d`, der zum Zeitpunkt der ersten Analyse dieses Plans schon HEAD war. Frühere Fassung dieses Dokuments listete das fälschlich als offen (Lesefehler beim ursprünglichen FORTSETZUNG.md-Stand).
 
 ---
 
@@ -118,13 +118,12 @@ Das ist echter, bereits von euch selbst dokumentierter offener Bedarf — keine 
 - [ ] Ursache des `v4PageHeight: 0`-Befunds in `diff-reports/latest` manuell verifizieren, nachdem die beiden Race-Condition-Fixes vom 29.06. einmal live gegen `test4` gelaufen sind
 - **Erfolgskriterium:** `npx vitest run tests/unit` bleibt bei 100 % grün nach jeder Änderung; neuer `diff-reports`-Lauf zeigt `matchPct` deutlich über 15 %
 
-### Phase 4 — `Framer-to-Elementor-V4-Pipeline`: Strangler-Fig zu Ende bringen (P1)
+### Phase 4 — `Framer-to-Elementor-V4-Pipeline`: Strangler-Fig zu Ende bringen (P1) — ✅ bereits erledigt
 
-Auch hier: euer eigener, bereits sehr präziser Plan aus `FORTSETZUNG.md` — hier nur bestätigt, nicht neu erfunden:
+War beim ersten Schreiben dieses Plans fälschlich als offen markiert (siehe Korrektur oben). Kein Handlungsbedarf.
 
-- [ ] Schritt 13: `mcp-bridge.ts` → `src/builder/`, `unframer-bridge.ts` → `src/extractor/`
-- [ ] Schritt 14: `wizard.js` + `scripts/wizard/*.js` zu TypeScript migrieren, nach `src/cli/`
-- **Erfolgskriterium:** `npx tsc --noEmit` bleibt bei 0 Fehlern; `node --import tsx --test tests/pipeline.test.js` bleibt bei 128/128 (bzw. steigt, falls neue Tests für die verschobenen Module dazukommen)
+- [x] Schritt 13: `mcp-bridge.ts` → `src/builder/`, `unframer-bridge.ts` → `src/extractor/`
+- [x] Schritt 14: `wizard.js` + `scripts/wizard/*.js` zu TypeScript migriert, `wizard.ts` im Root
 
 ### Phase 5 — Cross-Repo-Integration (P2, nach Phase 1–4)
 
